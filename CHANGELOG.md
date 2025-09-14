@@ -1,6 +1,5 @@
 # Changelog
 
-## 1.0.6
-- Initial setup for arb-translator package
-- Added LICENSE and CHANGELOG
-- Prepared package for publishing on pub.dev
+## 1.0.0
+- Initial release
+- Adds ARB reading, writing, and translation functionality
