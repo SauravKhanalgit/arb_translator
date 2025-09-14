@@ -31,14 +31,4 @@ dart pub global activate arb_translator_gen_z
 
 You can now run the CLI with:
 arb_translator_gen_z
-
-
-dart run bin/arb_translator.dart --source lib/l10n/app_en.arb --lang "te ne ug" 
-— for multiple languages
-
-dart run bin/arb_translator.dart --source lib/l10n/app_en.arb --lang ne
-— for single language like Nepali
-
-dart run bin/arb_translator.dart --source lib/l10n/app_en.arb --lang all
-— for all languages
-
+ 
