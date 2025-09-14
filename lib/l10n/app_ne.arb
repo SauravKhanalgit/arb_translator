@@ -1,0 +1,19 @@
+{
+  "@@locale": "ne",
+  "addToCart": "कार्टमा थप्नुहोस्",
+  "removeFromCart": "कार्टबाट हटाउनुहोस्",
+  "cart": "ठेलागाडी",
+  "checkout": "चेकआउट",
+  "total": "कूल",
+  "quantity": "मात्रा",
+  "orderPlaced": "तपाईंको अर्डर राखिएको छ!",
+  "paymentMethod": "भुक्तानी विधि",
+  "creditCard": "क्रेडिट कार्ड",
+  "paypal": "पेपैल",
+  "cashOnDelivery": "वितरणमा नगद",
+  "continueShopping": "शपिंग जारी राख्नुहोस्",
+  "emptyCart": "तपाईंको कार्ट खाली छ",
+  "language": "भाषा",
+  "errorNetwork": "नेटवर्क त्रुटि, कृपया फेरि प्रयास गर्नुहोस्।",
+  "errorUnexpected": "केहि गलत भयो, कृपया पछि प्रयास गर्नुहोस्।"
+}

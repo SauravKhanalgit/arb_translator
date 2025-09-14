@@ -1,17 +1,23 @@
-# arb_translator
+# arb-translator
 
-A new Flutter project.
+A simple Dart CLI tool to automatically translate your `.arb` files into multiple languages.  
+Perfect for Flutter internationalization (i18n) projects.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Features
+- Translate `.arb` files into one or multiple languages
+- Supports **all major languages** (Google Translate coverage)
+- Option to translate into **all supported languages** in one go
+- Automatically updates `@@locale` in the translated `.arb` files
+- No API key required (uses Google Translate free endpoint)  
+ 
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🚀 Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# arb_translator
+Add this package to your `pubspec.yaml` (if published) or run directly from source:
+
+```bash
+dart pub global activate arb_translator

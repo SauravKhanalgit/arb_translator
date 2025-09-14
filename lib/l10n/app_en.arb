@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+   
+ 
+  "addToCart": "Add to Cart",
+  "removeFromCart": "Remove from Cart",
+  "cart": "Cart",
+  "checkout": "Checkout",
+  "total": "Total",
+  "quantity": "Quantity",
+  "orderPlaced": "Your order has been placed!",
+ 
+  "paymentMethod": "Payment Method",
+  "creditCard": "Credit Card",
+  "paypal": "PayPal",
+  "cashOnDelivery": "Cash on Delivery",
+  "continueShopping": "Continue Shopping",
+  "emptyCart": "Your cart is empty",
+   
+  "language": "Language", 
+  "errorNetwork": "Network error, please try again.",
+  "errorUnexpected": "Something went wrong, please try later."
+}
