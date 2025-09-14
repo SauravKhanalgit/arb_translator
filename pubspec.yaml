@@ -1,12 +1,15 @@
 name: arb_translator
 description: A Flutter ARB translation CLI tool.
-version: 0.0.1
+version: 1.0.6
+homepage: https://github.com/sauravkhanalgit/arb_translator
+repository: https://github.com/sauravkhanalgit/arb_translator
+publish_to: "https://pub.dev"
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  http: ^1.2.0
-  args: ^2.4.0
+  http: ^1.5.0
+  args: ^2.7.0
 
 executables:
   arb_translator: arb_translator
