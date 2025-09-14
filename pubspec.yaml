@@ -3,7 +3,7 @@ description: A Flutter ARB translation CLI tool.
 version: 1.0.6
 homepage: https://github.com/sauravkhanalgit/arb_translator
 repository: https://github.com/sauravkhanalgit/arb_translator
-publish_to: "https://pub.dev"
+ 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
