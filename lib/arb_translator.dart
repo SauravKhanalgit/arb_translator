@@ -1,30 +1,6 @@
 import 'arb_helper.dart';
 import 'translator.dart';
 
-// Future<void> generateArbForLanguage(
-//   String sourcePath,
-//   String targetLang,
-// ) async {
-//   final sourceContent = await readArbFile(sourcePath);
-//   final targetContent = <String, dynamic>{'@@locale': targetLang};
-
-//   for (var key in sourceContent.keys) {
-//     if (key.startsWith('@') || key == '@@locale') {
-//       targetContent[key] = sourceContent[key];
-//       continue;
-//     }
-//     final translated = await translateText(sourceContent[key], targetLang);
-//     targetContent[key] = translated;
-//     print('Translated $key: $translated');
-//   }
-
-//   final targetPath = sourcePath.replaceAll(
-//     RegExp(r'_en.arb$'),
-//     '_$targetLang.arb',
-//   );
-//   await writeArbFile(targetPath, targetContent);
-//   print('Generated $targetPath successfully!');
-// }
 Future<void> generateArbForLanguage(
   String sourcePath,
   String targetLang,
