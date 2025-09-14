@@ -1,3 +1,7 @@
+/// A set of all supported ISO-639 language codes for translation.
+///
+/// These codes can be used as the [targetLang] parameter in translation
+/// functions like [translateText].
 const supportedLangCodes = {
   'af',
   'sq',
@@ -111,6 +115,22 @@ const supportedLangCodes = {
   'zu'
 };
 
+/// Validates the given [code] as a supported language code.
+///
+/// Converts [code] to lowercase and checks if it exists in [supportedLangCodes].
+/// If the code is invalid, an [Exception] is thrown with a helpful error message.
+///
+/// Example:
+/// ```dart
+/// final lang = validateLangCode('Ne'); // returns 'ne'
+/// validateLangCode('xx'); // throws Exception
+/// ```
+///
+/// [code]: The language code to validate (case-insensitive).
+///
+/// Returns the normalized (lowercase) version of the code if valid.
+///
+/// Throws [Exception] if the code is not supported.
 String validateLangCode(String code) {
   final normalized = code.toLowerCase();
   if (!supportedLangCodes.contains(normalized)) {
