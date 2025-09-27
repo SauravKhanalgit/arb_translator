@@ -11,11 +11,8 @@ issue_tracker: https://github.com/sauravkhanalgit/arb_translator/issues
 topics:
   - flutter
   - internationalization
-  - localization
   - arb
   - translation
-  - i18n
-  - l10n
   - cli
 
 platforms:
