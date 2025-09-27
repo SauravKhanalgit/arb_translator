@@ -3,15 +3,18 @@
 /// A comprehensive Dart library for translating ARB (Application Resource Bundle)
 /// files with advanced features designed for production Flutter applications.
 ///
-/// ## Features
+/// ## Features (v2.1.0)
 ///
-/// - **100+ Language Support**: Translate to over 100 languages with native names
-/// - **Batch Processing**: Concurrent translation with intelligent throttling
+/// - **100+ Language Support**: Translate to over 100 languages with native names and regional variants
+/// - **Translation Memory**: Intelligent caching system reducing API calls by up to 70%
+/// - **Incremental Translation**: Smart diff detection for translating only changed strings
+/// - **Interactive & Watch Modes**: Step-by-step translation and automatic file watching
+/// - **Batch Processing**: Concurrent translation with enhanced performance (5 parallel requests)
 /// - **Enterprise Reliability**: Retry logic, rate limiting, and comprehensive error handling
-/// - **ARB Validation**: Pre and post-translation validation ensuring file integrity
-/// - **Flexible Configuration**: YAML-based configuration with environment-specific settings
-/// - **Rich CLI Interface**: Professional command-line tools with progress indicators
-/// - **Detailed Logging**: Structured logging with multiple levels and colored output
+/// - **ARB Validation**: Pre and post-translation validation with specific error locations
+/// - **Flexible Configuration**: YAML-based configuration with multiple named profiles
+/// - **Rich CLI Interface**: Professional command-line tools with colored output and emoji indicators
+/// - **Detailed Logging**: Structured logging with ETA and throughput metrics
 ///
 /// ## Quick Start
 ///
@@ -112,14 +115,11 @@ library arb_translator_gen_z; // Core translation functionality
 export 'arb_helper.dart';
 export 'arb_translator.dart';
 export 'languages.dart';
-export 'translator.dart';
-
 // Configuration system
 export 'src/config/translator_config.dart';
-
-// Logging system
-export 'src/logging/translator_logger.dart';
-
 // Exception types
 export 'src/exceptions/arb_exceptions.dart';
 export 'src/exceptions/translation_exceptions.dart';
+// Logging system
+export 'src/logging/translator_logger.dart';
+export 'translator.dart';

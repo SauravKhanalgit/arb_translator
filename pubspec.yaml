@@ -2,7 +2,7 @@ name: arb_translator_gen_z
 description: >-
   Modern CLI tool for translating ARB localization files into 100+ languages with enterprise features like retry logic, rate limiting, and validation.
 
-version: 2.0.0
+version: 2.1.0
 homepage: https://github.com/sauravkhanalgit/arb_translator
 repository: https://github.com/sauravkhanalgit/arb_translator
 documentation: https://github.com/sauravkhanalgit/arb_translator/blob/main/README.md

@@ -19,7 +19,7 @@ Future<void> main() async {
 
   try {
     // Create translator instance with default configuration
-    final config = TranslatorConfig();
+    const config = TranslatorConfig();
     final translator = ArbTranslator(config);
 
     // Create sample ARB file if it doesn't exist

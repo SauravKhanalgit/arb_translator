@@ -1,4 +1,4 @@
-import 'src/exceptions/translation_exceptions.dart';
+import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
 
 /// Language information and validation for ARB translation.
 ///
@@ -52,7 +52,11 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'sq': LanguageInfo(code: 'sq', name: 'Albanian', nativeName: 'Shqip'),
   'am': LanguageInfo(code: 'am', name: 'Amharic', nativeName: 'አማርኛ'),
   'ar': LanguageInfo(
-      code: 'ar', name: 'Arabic', nativeName: 'العربية', isRightToLeft: true),
+    code: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    isRightToLeft: true,
+  ),
   'hy': LanguageInfo(code: 'hy', name: 'Armenian', nativeName: 'Հայերեն'),
   'az': LanguageInfo(code: 'az', name: 'Azerbaijani', nativeName: 'Azərbaycan'),
   'eu': LanguageInfo(code: 'eu', name: 'Basque', nativeName: 'Euskera'),
@@ -65,9 +69,15 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'ny': LanguageInfo(code: 'ny', name: 'Chichewa', nativeName: 'Chichewa'),
   'zh': LanguageInfo(code: 'zh', name: 'Chinese', nativeName: '中文'),
   'zh-cn': LanguageInfo(
-      code: 'zh-cn', name: 'Chinese (Simplified)', nativeName: '简体中文'),
+    code: 'zh-cn',
+    name: 'Chinese (Simplified)',
+    nativeName: '简体中文',
+  ),
   'zh-tw': LanguageInfo(
-      code: 'zh-tw', name: 'Chinese (Traditional)', nativeName: '繁體中文'),
+    code: 'zh-tw',
+    name: 'Chinese (Traditional)',
+    nativeName: '繁體中文',
+  ),
   'co': LanguageInfo(code: 'co', name: 'Corsican', nativeName: 'Corsu'),
   'hr': LanguageInfo(code: 'hr', name: 'Croatian', nativeName: 'Hrvatski'),
   'cs': LanguageInfo(code: 'cs', name: 'Czech', nativeName: 'Čeština'),
@@ -86,19 +96,29 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'el': LanguageInfo(code: 'el', name: 'Greek', nativeName: 'Ελληνικά'),
   'gu': LanguageInfo(code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી'),
   'ht': LanguageInfo(
-      code: 'ht', name: 'Haitian Creole', nativeName: 'Kreyòl ayisyen'),
+    code: 'ht',
+    name: 'Haitian Creole',
+    nativeName: 'Kreyòl ayisyen',
+  ),
   'ha': LanguageInfo(code: 'ha', name: 'Hausa', nativeName: 'Harshen Hausa'),
   'haw':
       LanguageInfo(code: 'haw', name: 'Hawaiian', nativeName: 'Ōlelo Hawaiʻi'),
   'he': LanguageInfo(
-      code: 'he', name: 'Hebrew', nativeName: 'עברית', isRightToLeft: true),
+    code: 'he',
+    name: 'Hebrew',
+    nativeName: 'עברית',
+    isRightToLeft: true,
+  ),
   'hi': LanguageInfo(code: 'hi', name: 'Hindi', nativeName: 'हिन्दी'),
   'hmn': LanguageInfo(code: 'hmn', name: 'Hmong', nativeName: 'Hmong'),
   'hu': LanguageInfo(code: 'hu', name: 'Hungarian', nativeName: 'Magyar'),
   'is': LanguageInfo(code: 'is', name: 'Icelandic', nativeName: 'Íslenska'),
   'ig': LanguageInfo(code: 'ig', name: 'Igbo', nativeName: 'Igbo'),
   'id': LanguageInfo(
-      code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia'),
+    code: 'id',
+    name: 'Indonesian',
+    nativeName: 'Bahasa Indonesia',
+  ),
   'ga': LanguageInfo(code: 'ga', name: 'Irish', nativeName: 'Gaeilge'),
   'it': LanguageInfo(code: 'it', name: 'Italian', nativeName: 'Italiano'),
   'ja': LanguageInfo(code: 'ja', name: 'Japanese', nativeName: '日本語'),
@@ -116,7 +136,10 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'lv': LanguageInfo(code: 'lv', name: 'Latvian', nativeName: 'Latviešu'),
   'lt': LanguageInfo(code: 'lt', name: 'Lithuanian', nativeName: 'Lietuvių'),
   'lb': LanguageInfo(
-      code: 'lb', name: 'Luxembourgish', nativeName: 'Lëtzebuergesch'),
+    code: 'lb',
+    name: 'Luxembourgish',
+    nativeName: 'Lëtzebuergesch',
+  ),
   'mk': LanguageInfo(code: 'mk', name: 'Macedonian', nativeName: 'Македонски'),
   'mg': LanguageInfo(code: 'mg', name: 'Malagasy', nativeName: 'Malagasy'),
   'ms': LanguageInfo(code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu'),
@@ -131,9 +154,17 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'no': LanguageInfo(code: 'no', name: 'Norwegian', nativeName: 'Norsk'),
   'or': LanguageInfo(code: 'or', name: 'Odia', nativeName: 'ଓଡ଼ିଆ'),
   'ps': LanguageInfo(
-      code: 'ps', name: 'Pashto', nativeName: 'پښتو', isRightToLeft: true),
+    code: 'ps',
+    name: 'Pashto',
+    nativeName: 'پښتو',
+    isRightToLeft: true,
+  ),
   'fa': LanguageInfo(
-      code: 'fa', name: 'Persian', nativeName: 'فارسی', isRightToLeft: true),
+    code: 'fa',
+    name: 'Persian',
+    nativeName: 'فارسی',
+    isRightToLeft: true,
+  ),
   'pl': LanguageInfo(code: 'pl', name: 'Polish', nativeName: 'Polski'),
   'pt': LanguageInfo(code: 'pt', name: 'Portuguese', nativeName: 'Português'),
   'pa': LanguageInfo(code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ'),
@@ -162,15 +193,27 @@ const Map<String, LanguageInfo> supportedLanguages = {
   'tk': LanguageInfo(code: 'tk', name: 'Turkmen', nativeName: 'Türkmen'),
   'uk': LanguageInfo(code: 'uk', name: 'Ukrainian', nativeName: 'Українська'),
   'ur': LanguageInfo(
-      code: 'ur', name: 'Urdu', nativeName: 'اردو', isRightToLeft: true),
+    code: 'ur',
+    name: 'Urdu',
+    nativeName: 'اردو',
+    isRightToLeft: true,
+  ),
   'ug': LanguageInfo(
-      code: 'ug', name: 'Uyghur', nativeName: 'ئۇيغۇرچە', isRightToLeft: true),
+    code: 'ug',
+    name: 'Uyghur',
+    nativeName: 'ئۇيغۇرچە',
+    isRightToLeft: true,
+  ),
   'uz': LanguageInfo(code: 'uz', name: 'Uzbek', nativeName: 'Oʻzbek'),
   'vi': LanguageInfo(code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt'),
   'cy': LanguageInfo(code: 'cy', name: 'Welsh', nativeName: 'Cymraeg'),
   'xh': LanguageInfo(code: 'xh', name: 'Xhosa', nativeName: 'isiXhosa'),
   'yi': LanguageInfo(
-      code: 'yi', name: 'Yiddish', nativeName: 'ייִדיש', isRightToLeft: true),
+    code: 'yi',
+    name: 'Yiddish',
+    nativeName: 'ייִדיש',
+    isRightToLeft: true,
+  ),
   'yo': LanguageInfo(code: 'yo', name: 'Yoruba', nativeName: 'Yorùbá'),
   'zu': LanguageInfo(code: 'zu', name: 'Zulu', nativeName: 'isiZulu'),
 };

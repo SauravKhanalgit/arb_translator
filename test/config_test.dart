@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('TranslatorConfig Tests', () {

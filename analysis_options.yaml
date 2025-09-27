@@ -1,33 +1,12 @@
 include: package:very_good_analysis/analysis_options.yaml
 
-linter:
-  rules:
-    # Documentation
-    public_member_api_docs: true
-    
-    # Style
-    prefer_single_quotes: true
-    unnecessary_lambdas: true
-    
-    # Error prone patterns
-    avoid_print: true
-    avoid_slow_async_io: true
-    cancel_subscriptions: true
-    close_sinks: true
-    
-    # Design
-    prefer_const_constructors: true
-    prefer_const_declarations: true
-    prefer_final_fields: true
-    prefer_final_locals: true
-    
-    # Pub
-    sort_pub_dependencies: true
-
 analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "build/**"
+    - ".dart_tool/**"
   
   errors:
     # Treat missing required parameters as errors
@@ -37,15 +16,26 @@ analyzer:
     # Treat invalid assignments as errors
     invalid_assignment: error
 
-dart_code_metrics:
-  metrics:
-    cyclomatic-complexity: 10
-    maximum-nesting-level: 5
-    number-of-parameters: 4
-    source-lines-of-code: 50
-  
+linter:
   rules:
-    - avoid-dynamic
-    - avoid-global-state
-    - avoid-missing-enum-constant-in-map
-    - prefer-trailing-comma
+    # Allow print in CLI tools and examples - appropriate for CLI package
+    avoid_print: false
+    # Allow dynamic calls for translation API responses  
+    avoid_dynamic_calls: false
+    # Allow async IO for file operations in CLI tools
+    avoid_slow_async_io: false
+    # Allow long lines for documentation and URLs
+    lines_longer_than_80_chars: false
+    # Allow cascade_invocations flexibility for CLI builders
+    cascade_invocations: false
+    # Allow mutable classes to have equals/hashCode in data models
+    avoid_equals_and_hash_code_on_mutable_classes: false
+    # Allow comment references for code documentation
+    comment_references: false
+    
+    # Keep important quality rules
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    sort_pub_dependencies: true

@@ -2,6 +2,7 @@
 ///
 /// This example demonstrates advanced features and patterns for
 /// integrating ARB translation into your Dart applications.
+library;
 
 import 'dart:io';
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
@@ -58,20 +59,17 @@ Future<void> errorHandlingExample() async {
 
 /// Example 2: Advanced configuration management
 Future<void> configurationManagementExample() async {
-  print('\\n=== Configuration Management Example ===');
+  print(r'\n=== Configuration Management Example ===');
 
   // Create environment-specific configurations
-  final developmentConfig = const TranslatorConfig(
+  const developmentConfig = TranslatorConfig(
     maxConcurrentTranslations: 2,
     logLevel: LogLevel.debug,
-    validateOutput: true,
-    prettyPrintJson: true,
   );
 
-  final productionConfig = const TranslatorConfig(
+  const productionConfig = TranslatorConfig(
     maxConcurrentTranslations: 10,
     logLevel: LogLevel.warning,
-    validateOutput: true,
     prettyPrintJson: false,
     retryAttempts: 5,
   );
@@ -91,7 +89,7 @@ Future<void> configurationManagementExample() async {
 
 /// Example 3: Direct translation service usage
 Future<void> translationServiceExample() async {
-  print('\\n=== Translation Service Example ===');
+  print(r'\n=== Translation Service Example ===');
 
   final config = await TranslatorConfig.fromFile();
   final translationService = TranslationService(config);
@@ -128,11 +126,10 @@ Future<void> translationServiceExample() async {
 
 /// Example 4: Batch processing with progress tracking
 Future<void> batchProcessingExample() async {
-  print('\\n=== Batch Processing Example ===');
+  print(r'\n=== Batch Processing Example ===');
 
-  final config = const TranslatorConfig(
+  const config = TranslatorConfig(
     maxConcurrentTranslations: 3,
-    logLevel: LogLevel.info,
   );
 
   final logger = TranslatorLogger();
@@ -174,7 +171,6 @@ Future<void> batchProcessingExample() async {
       final results = await translator.generateMultipleLanguages(
         sourceFile,
         targetLanguages,
-        overwrite: true,
       );
 
       // Report results
@@ -182,7 +178,8 @@ Future<void> batchProcessingExample() async {
       final failed = targetLanguages.length - successful;
 
       logger.info(
-          'Results for $sourceFile: $successful successful, $failed failed');
+        'Results for $sourceFile: $successful successful, $failed failed',
+      );
     }
   } finally {
     translator.dispose();
@@ -191,14 +188,11 @@ Future<void> batchProcessingExample() async {
 
 /// Example 5: CI/CD integration pattern
 Future<void> cicdIntegrationExample() async {
-  print('\\n=== CI/CD Integration Example ===');
+  print(r'\n=== CI/CD Integration Example ===');
 
   // Configuration for CI/CD environment
-  final ciConfig = const TranslatorConfig(
-    maxConcurrentTranslations: 5,
+  const ciConfig = TranslatorConfig(
     logLevel: LogLevel.warning, // Less verbose for CI
-    validateOutput: true,
-    retryAttempts: 3,
     requestTimeoutMs: 60000, // Longer timeout for CI
   );
 
@@ -255,7 +249,6 @@ Future<void> cicdIntegrationExample() async {
       final results = await translator.generateMultipleLanguages(
         sourceFile,
         requiredLanguages,
-        overwrite: true,
       );
 
       // Check if all translations were successful

@@ -58,7 +58,7 @@ class TranslationRateLimitException extends TranslationException {
 
   @override
   String toString() {
-    final baseMessage = 'TranslationRateLimitException: Rate limit exceeded';
+    const baseMessage = 'TranslationRateLimitException: Rate limit exceeded';
     return retryAfter != null
         ? '$baseMessage, retry after ${retryAfter}s'
         : baseMessage;
@@ -93,7 +93,7 @@ class TranslationServiceUnavailableException extends TranslationException {
 
   @override
   String toString() {
-    final baseMessage =
+    const baseMessage =
         'TranslationServiceUnavailableException: Service unavailable';
     return retryAfter != null
         ? '$baseMessage, retry after ${retryAfter}s'

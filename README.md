@@ -69,11 +69,27 @@ Then run:
 dart pub get
 ```
 
+**Verify your installation:**
+```bash
+# Check if the package is properly installed
+dart pub deps
+
+# Test the CLI locally (from your project directory)
+dart run arb_translator_gen_z:arb_translator --help
+
+# Or run programmatically
+dart run -e "import 'package:arb_translator_gen_z/arb_translator_gen_z.dart'; void main() => print('Package loaded successfully!');"
+```
+
 ---
 
 ## 🎮 Quick Start
 
+> **📌 Important**: These examples show both global installation and project dependency usage.
+
 ### 1. Translate to Specific Languages
+
+**If installed globally:**
 ```bash
 # Translate to French and Spanish
 arb_translator -s lib/l10n/app_en.arb -l fr es
@@ -82,12 +98,30 @@ arb_translator -s lib/l10n/app_en.arb -l fr es
 arb_translator -s lib/l10n/app_en.arb -l fr es de it pt ru ja ko zh
 ```
 
+**If using as project dependency:**
+```bash
+# Translate to French and Spanish
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es
+
+# Translate to popular languages
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es de it pt ru ja ko zh
+```
+
 ### 2. Translate to All Supported Languages
+
+**Global:**
 ```bash
 arb_translator -s lib/l10n/app_en.arb -l all
 ```
 
+**Project dependency:**
+```bash
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l all
+```
+
 ### 3. Generate and Use Custom Configuration
+
+**Global:**
 ```bash
 # Create configuration file
 arb_translator --init-config
@@ -96,10 +130,180 @@ arb_translator --init-config
 arb_translator -s lib/l10n/app_en.arb -l fr es --config my_config.yaml
 ```
 
+**Project dependency:**
+```bash
+# Create configuration file
+dart run arb_translator_gen_z:arb_translator --init-config
+
+# Use custom configuration
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es --config my_config.yaml
+```
+
 ### 4. Validate ARB Files
+
+**Global:**
 ```bash
 # Validate without translating (great for CI/CD)
 arb_translator -s lib/l10n/app_en.arb --validate-only
+```
+
+**Project dependency:**
+```bash
+# Validate without translating (great for CI/CD)
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb --validate-only
+```
+
+### 5. Flutter Project Integration
+
+**Step-by-step setup for Flutter projects:**
+
+1. **Add the dependency to your Flutter project:**
+   ```bash
+   flutter pub add arb_translator_gen_z
+   ```
+
+2. **Create your ARB directory structure:**
+   ```bash
+   mkdir -p lib/l10n
+   ```
+
+3. **Create your source ARB file in your preferred location:**
+
+   **Option A: Standard Flutter location (`lib/l10n/app_en.arb`):**
+   ```json
+   {
+     "@@locale": "en",
+     "hello": "Hello",
+     "@hello": {
+       "description": "A greeting"
+     },
+     "welcome": "Welcome to our app!",
+     "@welcome": {
+       "description": "Welcome message"
+     }
+   }
+   ```
+
+   **Option B: Assets directory (`assets/l10n/app_en.arb`):**
+   ```bash
+   # Create assets directory structure
+   mkdir -p assets/l10n
+   ```
+   ```json
+   {
+     "@@locale": "en",
+     "appName": "My Flutter App",
+     "@appName": {
+       "description": "The name of the application"
+     },
+     "greeting": "Hello, World!",
+     "@greeting": {
+       "description": "A simple greeting"
+     }
+   }
+   ```
+
+4. **Translate using CLI (works with any path):**
+   ```bash
+   # For lib/l10n/ (standard)
+   dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es de
+   
+   # For assets/l10n/ (alternative)
+   dart run arb_translator_gen_z:arb_translator -s assets/l10n/app_en.arb -l fr es de
+   
+   # For custom paths
+   dart run arb_translator_gen_z:arb_translator -s path/to/your/strings_en.arb -l fr es de
+   ```
+
+5. **Or use programmatically in your Flutter app:**
+   ```dart
+   import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
+   
+   Future<void> translateAppStrings() async {
+     const config = TranslatorConfig();
+     final logger = TranslatorLogger()..initialize(config.logLevel);
+     final translator = ArbTranslator(config);
+     
+     try {
+       // For assets/l10n/ directory
+       await translator.generateMultipleLanguages(
+         'assets/l10n/app_en.arb',
+         ['fr', 'es', 'de'],
+       );
+       
+       // Or for lib/l10n/ directory
+       await translator.generateMultipleLanguages(
+         'lib/l10n/app_en.arb',
+         ['fr', 'es', 'de'],
+       );
+       
+       print('Translation completed!');
+     } finally {
+       translator.dispose();
+     }
+   }
+   ```
+
+### 6. Troubleshooting Installation
+
+**If the `arb_translator` command is not found after global installation:**
+```bash
+# Ensure Dart's global packages are in your PATH
+echo 'export PATH="$PATH:$HOME/.pub-cache/bin"' >> ~/.zshrc
+source ~/.zshrc
+
+# Or for bash users
+echo 'export PATH="$PATH:$HOME/.pub-cache/bin"' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify the installation
+arb_translator --help
+```
+
+**If using as a project dependency:**
+```bash
+# Use the full command with dart run
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr
+
+# Or create a shortcut script in your project
+echo '#!/bin/bash\ndart run arb_translator_gen_z:arb_translator "$@"' > arb_translate.sh
+chmod +x arb_translate.sh
+./arb_translate.sh -s lib/l10n/app_en.arb -l fr
+```
+
+**Common Flutter project issues:**
+```bash
+# If you get "Could not find file" errors
+flutter clean
+flutter pub get
+dart run arb_translator_gen_z:arb_translator --help
+
+# If imports fail in Dart code
+flutter pub deps  # Check if package is properly installed
+dart pub get      # Re-resolve dependencies
+
+# Create a simple test file to verify installation
+echo 'import "package:arb_translator_gen_z/arb_translator_gen_z.dart"; void main() => print("Package works!");' > test_import.dart
+dart run test_import.dart
+rm test_import.dart
+```
+
+**Different ARB file locations:**
+```bash
+# Standard Flutter i18n location
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es
+
+# Assets directory (common alternative)
+dart run arb_translator_gen_z:arb_translator -s assets/l10n/app_en.arb -l fr es
+
+# Custom directory structure
+dart run arb_translator_gen_z:arb_translator -s i18n/locales/en.arb -l fr es
+
+# Relative paths work from project root
+dart run arb_translator_gen_z:arb_translator -s ./assets/i18n/strings_en.arb -l fr es
+
+# Check if your ARB file exists first
+ls -la assets/l10n/app_en.arb  # Should show your file
 ```
 
 ---
@@ -126,6 +330,8 @@ arb_translator -s lib/l10n/app_en.arb --validate-only
 | `--quiet, -q` | Suppress non-error output | `-q` |
 
 ### Examples
+
+**Global installation:**
 ```bash
 # Basic usage
 arb_translator -s lib/l10n/app_en.arb -l fr es de
@@ -139,6 +345,22 @@ arb_translator -s app_en.arb --validate-only --quiet
 # Show language information
 arb_translator --list-languages
 arb_translator --popular
+```
+
+**Project dependency:**
+```bash
+# Basic usage
+dart run arb_translator_gen_z:arb_translator -s lib/l10n/app_en.arb -l fr es de
+
+# With custom config and verbose output
+dart run arb_translator_gen_z:arb_translator -s app_en.arb -l all --config prod_config.yaml --verbose
+
+# Validate only (useful in CI/CD)
+dart run arb_translator_gen_z:arb_translator -s app_en.arb --validate-only --quiet
+
+# Show language information
+dart run arb_translator_gen_z:arb_translator --list-languages
+dart run arb_translator_gen_z:arb_translator --popular
 ```
 
 ---
@@ -226,30 +448,101 @@ arb_translator --popular
 
 ### Basic Translation
 ```dart
-import 'package:arb_translator_gen_z/arb_translator.dart';
-import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
 
 Future<void> translateFiles() async {
-  // Load configuration
-  final config = await TranslatorConfig.fromFile();
-  
-  // Create translator
-  final translator = ArbTranslator(config);
-  
   try {
+    // Load default configuration (or create one)
+    final config = await TranslatorConfig.fromFile() ?? const TranslatorConfig();
+    
+    // Initialize logger (required)
+    final logger = TranslatorLogger();
+    logger.initialize(config.logLevel);
+    
+    // Create translator
+    final translator = ArbTranslator(config);
+    
     // Translate to single language
-    await translator.generateArbForLanguage(
+    final outputPath = await translator.generateArbForLanguage(
       'lib/l10n/app_en.arb',
       'fr',
     );
+    print('Translation completed: $outputPath');
     
     // Translate to multiple languages
     await translator.generateMultipleLanguages(
       'lib/l10n/app_en.arb',
       ['fr', 'es', 'de', 'it'],
     );
+    
+    // Clean up
+    translator.dispose();
+  } catch (e) {
+    print('Translation failed: $e');
+  }
+}
+```
+
+### Quick Start for Dependency Users
+```dart
+// Simple one-liner translation function
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
+
+/// Translate an ARB file to a target language
+Future<String> translateArb(String sourcePath, String targetLang) async {
+  const config = TranslatorConfig();
+  final logger = TranslatorLogger()..initialize(config.logLevel);
+  final translator = ArbTranslator(config);
+  
+  try {
+    return await translator.generateArbForLanguage(sourcePath, targetLang);
   } finally {
     translator.dispose();
+  }
+}
+
+void main() async {
+  // Use the helper function
+  try {
+    final result = await translateArb('assets/i18n/app_en.arb', 'es');
+    print('✅ Translation completed: $result');
+  } catch (e) {
+    print('❌ Error: $e');
+  }
+}
+```
+
+### Complete Example with Error Handling
+```dart
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
+
+Future<void> completeExample() async {
+  try {
+    // Load or create configuration
+    final config = await TranslatorConfig.fromFile() ?? const TranslatorConfig();
+    
+    // Initialize logger
+    final logger = TranslatorLogger();
+    logger.initialize(config.logLevel);
+    
+    // Create translator
+    final translator = ArbTranslator(config);
+    
+    // Translate to multiple languages
+    final results = await translator.generateMultipleLanguages(
+      'lib/l10n/app_en.arb',
+      ['fr', 'es', 'de', 'it'],
+    );
+    
+    // Show results
+    results.forEach((lang, path) {
+      final info = getLanguageInfo(lang);
+      print('✅ ${info?.nativeName ?? lang}: $path');
+    });
+    
+    translator.dispose();
+  } catch (e) {
+    print('❌ Translation failed: $e');
   }
 }
 ```

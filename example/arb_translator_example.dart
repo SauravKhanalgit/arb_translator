@@ -5,6 +5,7 @@
 /// 2. Translate ARB files to specific languages
 /// 3. Handle errors gracefully
 /// 4. Use advanced features
+library;
 
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
 
@@ -54,16 +55,13 @@ Future<void> basicTranslationExample() async {
 
 /// Example 2: Batch translation with custom configuration
 Future<void> batchTranslationExample() async {
-  print('\\n=== Batch Translation Example ===');
+  print(r'\n=== Batch Translation Example ===');
 
   try {
     // Create custom configuration
-    final customConfig = const TranslatorConfig(
+    const customConfig = TranslatorConfig(
       maxConcurrentTranslations: 3,
       retryAttempts: 5,
-      logLevel: LogLevel.info,
-      prettyPrintJson: true,
-      validateOutput: true,
     );
 
     // Initialize logger
@@ -79,7 +77,6 @@ Future<void> batchTranslationExample() async {
     final results = await translator.generateMultipleLanguages(
       'lib/l10n/app_en.arb',
       targetLanguages,
-      overwrite: true,
     );
 
     print('✅ Batch translation completed:');
@@ -98,7 +95,7 @@ Future<void> batchTranslationExample() async {
 
 /// Example 3: ARB file validation
 Future<void> validationExample() async {
-  print('\\n=== Validation Example ===');
+  print(r'\n=== Validation Example ===');
 
   try {
     // Read ARB file
@@ -137,7 +134,7 @@ Future<void> validationExample() async {
 
 /// Example 4: Language utilities
 void languageUtilityExamples() {
-  print('\\n=== Language Utility Examples ===');
+  print(r'\n=== Language Utility Examples ===');
 
   // Get language information
   final frenchInfo = getLanguageInfo('fr');

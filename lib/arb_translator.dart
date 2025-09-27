@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'arb_helper.dart';
-import 'src/config/translator_config.dart';
-import 'src/exceptions/arb_exceptions.dart';
-import 'src/exceptions/translation_exceptions.dart';
-import 'src/logging/translator_logger.dart';
-import 'translator.dart';
+import 'package:arb_translator_gen_z/arb_helper.dart';
+import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
+import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
+import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
+import 'package:arb_translator_gen_z/translator.dart';
 
 /// Enhanced ARB file translator with comprehensive error handling and configuration.
 ///
@@ -60,9 +60,12 @@ class ArbTranslator {
       final targetPath = _generateTargetPath(sourcePath, targetLang);
       if (!overwrite && await File(targetPath).exists()) {
         _logger.warning(
-            'Target file exists and overwrite is disabled: $targetPath');
+          'Target file exists and overwrite is disabled: $targetPath',
+        );
         throw ArbFileWriteException(
-            targetPath, 'File exists and overwrite is disabled');
+          targetPath,
+          'File exists and overwrite is disabled',
+        );
       }
 
       // Extract translations (non-metadata entries)
@@ -72,7 +75,9 @@ class ArbTranslator {
       if (translations.isEmpty) {
         _logger.warning('No translatable content found in source file');
         throw ArbValidationException(
-            sourcePath, ['No translatable content found']);
+          sourcePath,
+          ['No translatable content found'],
+        );
       }
 
       _logger.info('Found ${translations.length} entries to translate');
@@ -150,7 +155,8 @@ class ArbTranslator {
     bool overwrite = true,
   }) async {
     _logger.info(
-        'Starting batch translation for ${targetLanguages.length} languages');
+      'Starting batch translation for ${targetLanguages.length} languages',
+    );
 
     final results = <String, String>{};
     final errors = <String, String>{};
@@ -189,7 +195,8 @@ class ArbTranslator {
     }
 
     _logger.success(
-        'Batch translation completed: ${results.length} successful, ${errors.length} failed');
+      'Batch translation completed: ${results.length} successful, ${errors.length} failed',
+    );
     return results;
   }
 
@@ -223,7 +230,8 @@ class ArbTranslator {
 
       if (issues.isNotEmpty) {
         _logger.warning(
-            'Validation issues in generated file: ${issues.join(', ')}');
+          'Validation issues in generated file: ${issues.join(', ')}',
+        );
       } else {
         _logger.debug('Generated file validation passed');
       }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'src/exceptions/arb_exceptions.dart';
+import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
 
 /// Enhanced ARB file operations with comprehensive validation and error handling.
 ///
@@ -164,7 +164,7 @@ class ArbHelper {
   static Future<void> _createBackup(String filePath) async {
     final file = File(filePath);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final backupPath = '${filePath}.backup.$timestamp';
+    final backupPath = '$filePath.backup.$timestamp';
     await file.copy(backupPath);
   }
 
@@ -216,7 +216,8 @@ class ArbHelper {
       if (lowerCaseKeys.containsKey(lowerKey) &&
           lowerCaseKeys[lowerKey] != key) {
         issues.add(
-            'Potential duplicate key: "$key" vs "${lowerCaseKeys[lowerKey]}"');
+          'Potential duplicate key: "$key" vs "${lowerCaseKeys[lowerKey]}"',
+        );
       }
       lowerCaseKeys[lowerKey] = key;
     }

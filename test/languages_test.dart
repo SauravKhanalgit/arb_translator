@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:arb_translator_gen_z/languages.dart';
 import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Language Support Tests', () {
@@ -21,10 +21,14 @@ void main() {
       expect(validateLangCode('Fr'), equals('fr'));
 
       // Invalid codes should throw
-      expect(() => validateLangCode('invalid'),
-          throwsA(isA<UnsupportedLanguageException>()));
-      expect(() => validateLangCode(''),
-          throwsA(isA<UnsupportedLanguageException>()));
+      expect(
+        () => validateLangCode('invalid'),
+        throwsA(isA<UnsupportedLanguageException>()),
+      );
+      expect(
+        () => validateLangCode(''),
+        throwsA(isA<UnsupportedLanguageException>()),
+      );
     });
 
     test('should provide language information', () {

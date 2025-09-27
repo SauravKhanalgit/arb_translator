@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
+import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
-
-import 'src/config/translator_config.dart';
-import 'src/exceptions/translation_exceptions.dart';
-import 'src/logging/translator_logger.dart';
 
 /// Enhanced translation service with retry logic, rate limiting, and comprehensive error handling.
 ///
@@ -60,11 +60,13 @@ class TranslationService {
     try {
       return await retryOptions.retry(
         () => _performTranslation(text, targetLang, sourceLang),
-        retryIf: (e) => _shouldRetry(e),
+        retryIf: _shouldRetry,
       );
     } catch (e) {
       _logger.error(
-          'Translation failed after ${_config.retryAttempts} attempts', e);
+        'Translation failed after ${_config.retryAttempts} attempts',
+        e,
+      );
 
       if (e is TranslationException) {
         rethrow;
@@ -90,7 +92,8 @@ class TranslationService {
     String? sourceLang,
   }) async {
     _logger.info(
-        'Starting batch translation of ${translations.length} items to $targetLang');
+      'Starting batch translation of ${translations.length} items to $targetLang',
+    );
 
     final results = <String, String>{};
     final entries = translations.entries.toList();
@@ -101,7 +104,8 @@ class TranslationService {
       final batch = entries.skip(i).take(batchSize).toList();
 
       _logger.progress(
-          'Translating batch ${(i ~/ batchSize) + 1} of ${(entries.length / batchSize).ceil()}');
+        'Translating batch ${(i ~/ batchSize) + 1} of ${(entries.length / batchSize).ceil()}',
+      );
 
       final futures = batch.map((entry) async {
         try {
@@ -150,7 +154,7 @@ class TranslationService {
     }
 
     // Use Google Translate API
-    return await _translateWithGoogleApi(text, targetLang, source);
+    return _translateWithGoogleApi(text, targetLang, source);
   }
 
   Future<String> _translateWithGoogleApi(
@@ -184,7 +188,7 @@ class TranslationService {
           }
         }
 
-        throw TranslationApiException(200, 'Unexpected response format');
+        throw const TranslationApiException(200, 'Unexpected response format');
       } catch (e) {
         throw TranslationApiException(200, 'Failed to parse response: $e');
       }
@@ -194,7 +198,7 @@ class TranslationService {
       throw TranslationRateLimitException(retryAfter);
     } else if (response.statusCode == 503) {
       // Service unavailable
-      throw TranslationServiceUnavailableException();
+      throw const TranslationServiceUnavailableException();
     } else {
       throw TranslationApiException(
         response.statusCode,

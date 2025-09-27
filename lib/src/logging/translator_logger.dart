@@ -1,18 +1,18 @@
 import 'dart:io';
+
+import 'package:arb_translator_gen_z/src/config/translator_config.dart';
 import 'package:logging/logging.dart';
-import '../config/translator_config.dart';
 
 /// A centralized logging service for the ARB translator.
 ///
 /// This class provides structured logging with different levels and formats,
 /// supporting both console and file output.
 class TranslatorLogger {
+  /// Gets the singleton instance of [TranslatorLogger].
+  factory TranslatorLogger() => _instance;
   TranslatorLogger._internal();
 
   static final TranslatorLogger _instance = TranslatorLogger._internal();
-
-  /// Gets the singleton instance of [TranslatorLogger].
-  factory TranslatorLogger() => _instance;
 
   late Logger _logger;
   late LogLevel _currentLevel;
@@ -96,16 +96,14 @@ class TranslatorLogger {
     final message = record.message;
 
     String colorCode;
-    String resetCode = '\x1b[0m';
+    const resetCode = '\x1b[0m';
 
     // Choose color based on log level
     switch (record.level) {
       case Level.SEVERE:
         colorCode = '\x1b[31m'; // Red
-        break;
       case Level.WARNING:
         colorCode = '\x1b[33m'; // Yellow
-        break;
       case Level.INFO:
         if (message.startsWith('✅')) {
           colorCode = '\x1b[32m'; // Green for success
@@ -114,10 +112,8 @@ class TranslatorLogger {
         } else {
           colorCode = '\x1b[37m'; // White
         }
-        break;
       case Level.FINE:
         colorCode = '\x1b[90m'; // Gray
-        break;
       default:
         colorCode = '\x1b[37m'; // White
     }

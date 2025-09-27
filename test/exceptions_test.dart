@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
 import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Exception Tests', () {
@@ -66,7 +66,9 @@ void main() {
 
         expect(exceptionWithoutRetry.retryAfter, isNull);
         expect(
-            exceptionWithoutRetry.toString(), isNot(contains('retry after')));
+          exceptionWithoutRetry.toString(),
+          isNot(contains('retry after')),
+        );
       });
 
       test('InvalidTranslationTextException should contain text and reason',

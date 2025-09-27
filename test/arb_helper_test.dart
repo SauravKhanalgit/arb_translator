@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:test/test.dart';
+
 import 'package:arb_translator_gen_z/arb_helper.dart';
 import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ARB Helper Tests', () {
@@ -104,7 +105,9 @@ void main() {
       final metadata = ArbHelper.getMetadata(content);
       expect(metadata.length, equals(3));
       expect(
-          metadata.keys, containsAll(['@@locale', '@@version', '@appTitle']));
+        metadata.keys,
+        containsAll(['@@locale', '@@version', '@appTitle']),
+      );
 
       final translations = ArbHelper.getTranslations(content);
       expect(translations.length, equals(2));
