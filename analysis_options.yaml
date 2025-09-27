@@ -1,3 +1,51 @@
+include: package:very_good_analysis/analysis_options.yaml
+
 linter:
   rules:
+    # Documentation
     public_member_api_docs: true
+    
+    # Style
+    prefer_single_quotes: true
+    unnecessary_lambdas: true
+    
+    # Error prone patterns
+    avoid_print: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    
+    # Design
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    
+    # Pub
+    sort_pub_dependencies: true
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  
+  errors:
+    # Treat missing required parameters as errors
+    missing_required_param: error
+    # Treat missing returns as errors  
+    missing_return: error
+    # Treat invalid assignments as errors
+    invalid_assignment: error
+
+dart_code_metrics:
+  metrics:
+    cyclomatic-complexity: 10
+    maximum-nesting-level: 5
+    number-of-parameters: 4
+    source-lines-of-code: 50
+  
+  rules:
+    - avoid-dynamic
+    - avoid-global-state
+    - avoid-missing-enum-constant-in-map
+    - prefer-trailing-comma

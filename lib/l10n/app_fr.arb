@@ -1,0 +1,19 @@
+{
+  "@@locale": "fr",
+  "addToCart": "Ajouter au panier",
+  "removeFromCart": "Retirer du chariot",
+  "cart": "Chariot",
+  "checkout": "Vérifier",
+  "total": "Total",
+  "quantity": "Quantité",
+  "orderPlaced": "Votre commande a été passée!",
+  "paymentMethod": "Mode de paiement",
+  "creditCard": "Carte de crédit",
+  "paypal": "Paypal",
+  "cashOnDelivery": "Paiement à la livraison",
+  "continueShopping": "Continuer les achats",
+  "emptyCart": "Votre panier est vide",
+  "language": "Langue",
+  "errorNetwork": "Erreur du réseau, veuillez réessayer.",
+  "errorUnexpected": "Quelque chose s'est mal passé, veuillez essayer plus tard."
+}

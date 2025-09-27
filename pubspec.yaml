@@ -1,16 +1,50 @@
 name: arb_translator_gen_z
-description: A Flutter command-line tool that automatically translates ARB localization files into multiple languages, simplifying app internationalization.
-version: 1.0.3
+description: >-
+  Modern CLI tool for translating ARB localization files into 100+ languages with enterprise features like retry logic, rate limiting, and validation.
+
+version: 2.0.0
 homepage: https://github.com/sauravkhanalgit/arb_translator
 repository: https://github.com/sauravkhanalgit/arb_translator
- 
+documentation: https://github.com/sauravkhanalgit/arb_translator/blob/main/README.md
+issue_tracker: https://github.com/sauravkhanalgit/arb_translator/issues
+
+topics:
+  - flutter
+  - internationalization
+  - localization
+  - arb
+  - translation
+  - i18n
+  - l10n
+  - cli
+
+platforms:
+  linux:
+  macos:
+  windows:
+
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
-  http: ^1.5.0
   args: ^2.7.0
+  cli_util: ^0.4.1
+  http: ^1.5.0
+  logging: ^1.2.0
+  path: ^1.9.0
+  retry: ^3.1.2
+  yaml: ^3.1.2
+
+dev_dependencies:
+  build_runner: ^2.4.12
+  coverage: ^1.8.0
+  mockito: ^5.4.4
+  test: ^1.25.8
+  very_good_analysis: ^6.0.0
 
 executables:
   arb_translator: arb_translator
+
+funding:
+  - https://github.com/sponsors/sauravkhanalgit
 

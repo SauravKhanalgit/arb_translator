@@ -1,0 +1,19 @@
+{
+  "@@locale": "de",
+  "addToCart": "in den Warenkorb legen",
+  "removeFromCart": "Aus dem Wagen nehmen",
+  "cart": "Wagen",
+  "checkout": "Kasse",
+  "total": "Gesamt",
+  "quantity": "Menge",
+  "orderPlaced": "Ihre Bestellung wurde aufgegeben!",
+  "paymentMethod": "Zahlungsmethode",
+  "creditCard": "Kreditkarte",
+  "paypal": "Paypal",
+  "cashOnDelivery": "Nachnahme",
+  "continueShopping": "Weiter einkaufen",
+  "emptyCart": "Ihr Wagen ist leer",
+  "language": "Sprache",
+  "errorNetwork": "Netzwerkfehler, bitte erneut versuchen.",
+  "errorUnexpected": "Etwas lief schief, bitte versuche es später."
+}

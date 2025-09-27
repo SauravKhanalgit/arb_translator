@@ -1,0 +1,79 @@
+# ARB Translator Configuration
+# This file contains all configurable settings for the ARB translator.
+# Copy this file to ~/.arb_translator/config.yaml or specify with --config
+
+# ==========================================
+# TRANSLATION SETTINGS
+# ==========================================
+
+# Maximum number of concurrent translation requests
+# Higher values = faster translation but more API load
+# Recommended: 3-10 depending on your API limits
+maxConcurrentTranslations: 5
+
+# Number of retry attempts for failed requests
+# Higher values = better reliability but slower on persistent failures
+retryAttempts: 3
+
+# Delay between retry attempts in milliseconds
+# Higher values = more polite to APIs but slower recovery
+retryDelayMs: 1000
+
+# Request timeout in milliseconds
+# Higher values = better for slow connections but longer waits
+requestTimeoutMs: 30000
+
+# Delay between requests to avoid rate limiting (milliseconds)
+# Higher values = safer for API limits but slower translation
+rateLimitDelayMs: 100
+
+# Source language for translation
+# "auto" = automatic detection, or specify code like "en"
+sourceLanguage: "auto"
+
+# ==========================================
+# OUTPUT SETTINGS
+# ==========================================
+
+# Whether to preserve ARB metadata entries (starting with '@')
+# true = keep all metadata, false = only keep @@locale
+preserveMetadata: true
+
+# Whether to format output JSON with indentation
+# true = pretty formatted, false = compact
+prettyPrintJson: true
+
+# Whether to create backup files before overwriting
+# true = safer but uses more disk space
+backupOriginal: false
+
+# Whether to validate output ARB files after generation
+# true = safer but slightly slower
+validateOutput: true
+
+# ==========================================
+# LOGGING SETTINGS
+# ==========================================
+
+# Logging level for console output
+# Options: "debug", "info", "warning", "error"
+# debug = most verbose, error = least verbose
+logLevel: "info"
+
+# ==========================================
+# API SETTINGS (ADVANCED)
+# ==========================================
+
+# Custom API endpoint URL (optional)
+# Uncomment and modify to use a different translation service
+# customApiEndpoint: "https://api.example.com/translate"
+
+# ==========================================
+# LANGUAGE-SPECIFIC SETTINGS (FUTURE)
+# ==========================================
+
+# These settings are planned for future versions:
+# - Language-specific quality thresholds
+# - Custom terminology management
+# - Translation memory integration
+# - Regional locale preferences
