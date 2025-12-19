@@ -187,8 +187,6 @@ class TranslationService {
   /// Gets translation memory statistics.
   Map<String, dynamic> getMemoryStats() => _translationMemory.getStats();
 
-  /// Gets AI provider statistics.
-
   /// Clears translation memory.
   void clearMemory() => _translationMemory.clear();
 
