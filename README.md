@@ -20,6 +20,13 @@ A **modern, robust** Dart CLI tool that automatically translates your `.arb` (Ap
 
 ## ✨ Key Features
 
+### 🤖 AI-Powered Translation (v3.0.0) ⭐ **NEW**
+- **Multiple AI Providers**: OpenAI GPT, DeepL, Azure Translator, AWS Translate
+- **Quality Scoring**: AI-powered evaluation of translation quality (0.0-1.0)
+- **Auto-Correction**: Automatic improvement of low-quality translations
+- **Intelligent Provider Selection**: Cost and quality-based routing
+- **Provider Health Monitoring**: Real-time testing and failover
+
 ### Core Translation Features
 - **Multi-language batch translation** with intelligent throttling
 - **Automatic retry logic** with exponential backoff for reliable API calls
@@ -318,6 +325,8 @@ ls -la assets/l10n/app_en.arb  # Should show your file
 | `--list-languages` | Show all supported languages |
 | `--popular` | Show popular language codes |
 | `--validate-only` | Validate ARB file without translating |
+| `--test-ai-providers` | Test all configured AI translation providers |
+| `--ai-stats` | Show AI provider statistics and health information |
 
 ### Options
 | Option | Description | Example |
@@ -335,6 +344,15 @@ ls -la assets/l10n/app_en.arb  # Should show your file
 ```bash
 # Basic usage
 arb_translator -s lib/l10n/app_en.arb -l fr es de
+
+# AI-powered translation with quality scoring
+arb_translator -s lib/l10n/app_en.arb -l fr es --ai-provider openai
+
+# Test AI providers before using them
+arb_translator --test-ai-providers
+
+# Show AI provider statistics
+arb_translator --ai-stats
 
 # With custom config and verbose output
 arb_translator -s app_en.arb -l all --config prod_config.yaml --verbose
@@ -412,6 +430,42 @@ logLevel: "info"  # debug, info, warning, error
 | `backupOriginal` | Create backup files | `false` | `true/false` |
 | `validateOutput` | Validate generated files | `true` | `true/false` |
 | `logLevel` | Logging verbosity | `"info"` | `debug/info/warning/error` |
+
+### AI Model Configuration
+
+The tool supports multiple AI translation providers for enhanced quality and reliability:
+
+```yaml
+# AI Model Configuration
+aiModel:
+  # Preferred translation provider (google, openai, deepl, azure, aws)
+  preferredProvider: "openai"
+
+  # Quality settings
+  qualityThreshold: 0.8
+  enableQualityScoring: true
+  enableAutoCorrection: false
+  maxTokensPerRequest: 4000
+
+  # API Keys (set these environment variables for security)
+  openaiApiKey: "${OPENAI_API_KEY}"
+  deeplApiKey: "${DEEPL_API_KEY}"
+  azureTranslatorKey: "${AZURE_TRANSLATOR_KEY}"
+  azureTranslatorRegion: "${AZURE_TRANSLATOR_REGION}"
+  awsTranslateAccessKey: "${AWS_TRANSLATE_ACCESS_KEY}"
+  awsTranslateSecretKey: "${AWS_TRANSLATE_SECRET_KEY}"
+  awsTranslateRegion: "us-east-1"
+```
+
+#### Supported AI Providers
+
+| Provider | Quality | Cost | Setup |
+|----------|---------|------|-------|
+| **OpenAI GPT** | ⭐⭐⭐⭐⭐ | $$$ | `OPENAI_API_KEY` |
+| **DeepL** | ⭐⭐⭐⭐⭐ | $$$ | `DEEPL_API_KEY` |
+| **Azure Translator** | ⭐⭐⭐⭐ | $$ | `AZURE_TRANSLATOR_KEY` + Region |
+| **AWS Translate** | ⭐⭐⭐ | $$ | Access Key + Secret + Region |
+| **Google Translate** | ⭐⭐⭐ | Free | No setup required |
 
 ---
 
@@ -545,6 +599,46 @@ Future<void> completeExample() async {
     print('❌ Translation failed: $e');
   }
 }
+```
+
+### AI-Powered Translation
+```dart
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
+
+// Configure with AI providers for high-quality translations
+final aiConfig = TranslatorConfig(
+  aiModelConfig: AIModelConfig(
+    openaiApiKey: Platform.environment['OPENAI_API_KEY'],
+    deeplApiKey: Platform.environment['DEEPL_API_KEY'],
+    preferredProvider: TranslationProvider.openai,
+    enableQualityScoring: true,
+    enableAutoCorrection: true,
+    qualityThreshold: 0.8,
+  ),
+);
+
+final translator = ArbTranslator(aiConfig);
+
+// Translate with quality scoring and auto-correction
+final result = await translator.generateArbForLanguage(
+  'lib/l10n/app_en.arb',
+  'fr',
+);
+// Result includes quality scores and processing metrics
+```
+
+### Cost Optimization and Provider Selection
+```dart
+final service = TranslationService(aiConfig);
+
+// Get cost estimates for all providers
+final costs = service.getCostEstimates('Hello, world!');
+
+// Test provider health
+final healthResults = await service.testAIProviders();
+
+// Get detailed statistics
+final stats = service.getAIProviderStats();
 ```
 
 ### Custom Configuration

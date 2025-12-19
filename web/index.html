@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARB Translator Gen Z - Web GUI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            overflow: hidden;
+        }
+
+        .upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(0, 123, 255, 0.05);
+        }
+
+        .upload-area:hover {
+            border-color: #0056b3;
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .language-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .language-tag {
+            background: #007bff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .language-tag.selected {
+            background: #28a745;
+        }
+
+        .translation-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .translation-result.success {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .translation-result.error {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .metrics-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .metrics-card h4 {
+            margin: 0 0 1rem 0;
+            opacity: 0.9;
+        }
+
+        .metrics-card .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+        }
+
+        .metrics-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 10px;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .feature-highlight h2 {
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .feature-highlight .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-item i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-language me-2"></i>
+                ARB Translator Gen Z
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-link">
+                    <i class="fas fa-server me-1"></i>
+                    v3.2.0
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <div class="feature-highlight">
+                <h2>🚀 World's Most Advanced ARB Translator</h2>
+                <p>AI-Powered • Context-Aware • Enterprise-Grade</p>
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fas fa-brain"></i>
+                        <strong>5 AI Providers</strong>
+                        <br>OpenAI, DeepL, Azure, AWS, Google
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-search"></i>
+                        <strong>Context Aware</strong>
+                        <br>Uses ARB descriptions for accuracy
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <strong>Enterprise Ready</strong>
+                        <br>GDPR compliant with audit logs
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <strong>Analytics</strong>
+                        <br>Real-time performance metrics
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h3 class="mb-4">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload & Translate
+                        </h3>
+
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                            <h5>Drag & Drop ARB/JSON Files</h5>
+                            <p class="text-muted">Or click to browse files</p>
+                            <input type="file" id="fileInput" accept=".arb,.json" class="d-none">
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>
+                                Choose File
+                            </button>
+                        </div>
+
+                        <div id="fileInfo" class="mt-3" style="display: none;">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-file-alt me-2"></i>File Analysis</h6>
+                                <div id="fileDetails"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5><i class="fas fa-globe me-2"></i>Select Target Languages</h5>
+                            <div class="language-selector" id="languageSelector">
+                                <!-- Languages will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-ai btn-lg me-2" onclick="translateFile()">
+                                <i class="fas fa-magic me-2"></i>
+                                AI Translate
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="validateFile()">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Validate Only
+                            </button>
+                        </div>
+
+                        <div id="translationResults" class="mt-4">
+                            <!-- Translation results will appear here -->
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <h4 class="mb-4">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Analytics
+                        </h4>
+
+                        <div class="metrics-card">
+                            <h4><i class="fas fa-brain me-2"></i>AI Providers</h4>
+                            <div id="providerMetrics">
+                                <div class="metric">
+                                    <span>Status:</span>
+                                    <span id="aiStatus">Loading...</span>
+                                </div>
+                                <div class="metric">
+                                    <span>Available:</span>
+                                    <span id="aiAvailable">0/5</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metrics-card">
+                            <h4><i class="fas fa-database me-2"></i>Translation Memory</h4>
+                            <div id="memoryMetrics">
+                                <div class="metric">
+                                    <span>Entries:</span>
+                                    <span id="memoryEntries">0</span>
+                                </div>
+                                <div class="metric">
+                                    <span>Cache Hits:</span>
+                                    <span id="cacheHits">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-star me-2"></i>Features</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="fas fa-check text-success me-2"></i>AI Quality Scoring</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Context Awareness</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Multi-Format Support</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Compliance Ready</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Real-time Analytics</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentFile = null;
+        let selectedLanguages = new Set();
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLanguages();
+            loadAnalytics();
+            setupDragAndDrop();
+        });
+
+        // Load supported languages
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/api/languages');
+                const data = await response.json();
+
+                const selector = document.getElementById('languageSelector');
+                const popularCodes = ['es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi'];
+
+                popularCodes.forEach(code => {
+                    const lang = data.languages.find(l => l.code === code);
+                    if (lang) {
+                        const tag = document.createElement('span');
+                        tag.className = 'language-tag';
+                        tag.onclick = () => toggleLanguage(code, tag);
+                        tag.innerHTML = `
+                            <span>${lang.nativeName} (${code})</span>
+                            <i class="fas fa-times ms-1" style="cursor: pointer;"></i>
+                        `;
+                        selector.appendChild(tag);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load languages:', error);
+            }
+        }
+
+        // Load analytics data
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+
+                document.getElementById('memoryEntries').textContent = data.memory.totalEntries || 0;
+                document.getElementById('cacheHits').textContent = data.memory.cacheHits || 0;
+
+                const available = data.providers.available_providers || 0;
+                const total = data.providers.total_providers || 0;
+                document.getElementById('aiAvailable').textContent = `${available}/${total}`;
+                document.getElementById('aiStatus').textContent = available > 0 ? 'Active' : 'Offline';
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+
+            document.getElementById('fileInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        // Handle file upload
+        async function handleFileUpload(file) {
+            try {
+                const content = await file.text();
+                const fileData = btoa(content); // Base64 encode
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        fileData: fileData,
+                        fileType: file.name.split('.').pop()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentFile = result;
+                    displayFileInfo(result);
+                } else {
+                    alert('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed: ' + error.message);
+            }
+        }
+
+        // Display file information
+        function displayFileInfo(fileData) {
+            const fileInfo = document.getElementById('fileInfo');
+            const fileDetails = document.getElementById('fileDetails');
+
+            fileDetails.innerHTML = `
+                <p><strong>File:</strong> ${fileData.fileName}</p>
+                <p><strong>Type:</strong> ${fileData.fileType.toUpperCase()}</p>
+                <p><strong>Keys:</strong> ${fileData.analysis.totalKeys}</p>
+                <p><strong>Completeness:</strong> ${fileData.analysis.completeness.toFixed(1)}%</p>
+                ${fileData.analysis.missingKeys > 0 ?
+                    `<p class="text-warning"><strong>Missing Keys:</strong> ${fileData.analysis.missingKeys}</p>` :
+                    '<p class="text-success"><strong>Status:</strong> Complete</p>'}
+            `;
+
+            fileInfo.style.display = 'block';
+        }
+
+        // Toggle language selection
+        function toggleLanguage(code, element) {
+            if (selectedLanguages.has(code)) {
+                selectedLanguages.delete(code);
+                element.classList.remove('selected');
+            } else {
+                selectedLanguages.add(code);
+                element.classList.add('selected');
+            }
+        }
+
+        // Translate file
+        async function translateFile() {
+            if (!currentFile) {
+                alert('Please upload a file first');
+                return;
+            }
+
+            if (selectedLanguages.size === 0) {
+                alert('Please select at least one target language');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('translationResults');
+            resultsDiv.innerHTML = '<div class="alert alert-info">Translating...</div>';
+
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: currentFile.content,
+                        languages: Array.from(selectedLanguages),
+                        sourceFile: currentFile.fileName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayTranslationResults(result);
+                } else {
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Translation failed: ${result.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Translation error: ${error.message}</div>`;
+            }
+        }
+
+        // Validate file
+        async function validateFile() {
+            if (!currentFile) {
+                alert('Please upload a file first');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: currentFile.content
+                    })
+                });
+
+                const result = await response.json();
+
+                const resultsDiv = document.getElementById('translationResults');
+                if (result.valid) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>Validation Passed</h6>
+                            <p>File is valid with ${result.analysis.totalKeys} keys and ${result.analysis.completeness.toFixed(1)}% completeness.</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Validation Issues</h6>
+                            <ul>${result.issues.map(issue => `<li>${issue}</li>`).join('')}</ul>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('translationResults').innerHTML =
+                    `<div class="alert alert-danger">Validation error: ${error.message}</div>`;
+            }
+        }
+
+        // Display translation results
+        function displayTranslationResults(result) {
+            const resultsDiv = document.getElementById('translationResults');
+            let html = '<h5 class="mb-3"><i class="fas fa-language me-2"></i>Translation Results</h5>';
+
+            Object.entries(result.results).forEach(([lang, data]) => {
+                const status = data.success ? 'success' : 'error';
+                const icon = data.success ? 'fa-check-circle' : 'fa-times-circle';
+                const title = data.success ? 'Success' : 'Failed';
+
+                html += `
+                    <div class="translation-result ${status}">
+                        <h6><i class="fas ${icon} me-2"></i>${lang.toUpperCase()} - ${title}</h6>
+                        ${data.success ?
+                            `<p>Translation completed successfully. File saved with ${Object.keys(data.content).length} keys.</p>
+                             <button class="btn btn-sm btn-outline-primary" onclick="downloadTranslation('${lang}', ${JSON.stringify(data.content).replace(/"/g, '&quot;')})">
+                                 <i class="fas fa-download me-1"></i>Download
+                             </button>` :
+                            `<p class="text-danger">${data.error}</p>`
+                        }
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="alert alert-info mt-3">
+                    <strong>Summary:</strong> ${result.summary.successful}/${result.summary.totalLanguages} languages translated successfully.
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Download translation
+        function downloadTranslation(lang, content) {
+            const dataStr = JSON.stringify(content, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `app_${lang}.arb`;
+            link.click();
+
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

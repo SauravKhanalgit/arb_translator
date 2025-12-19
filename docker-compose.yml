@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  arb-translator:
+    build: .
+    ports:
+      - "8080:8080"  # Web GUI
+      - "8081:8081"  # WebSocket collaboration
+    volumes:
+      - ./config:/home/arbuser/config:ro
+      - ./projects:/home/arbuser/projects
+      - ./logs:/home/arbuser/logs
+    environment:
+      - ARB_OPENAI_API_KEY=${ARB_OPENAI_API_KEY}
+      - ARB_DEEPL_API_KEY=${ARB_DEEPL_API_KEY}
+      - ARB_AZURE_KEY=${ARB_AZURE_KEY}
+      - ARB_AZURE_REGION=${ARB_AZURE_REGION}
+      - ARB_AWS_ACCESS_KEY_ID=${ARB_AWS_ACCESS_KEY_ID}
+      - ARB_AWS_SECRET_ACCESS_KEY=${ARB_AWS_SECRET_ACCESS_KEY}
+      - ARB_AWS_REGION=${ARB_AWS_REGION}
+      - ARB_GOOGLE_API_KEY=${ARB_GOOGLE_API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "arb_translator", "--help"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: ["--collaborate"]
+
+  # Optional: Redis for distributed caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - distributed
+
+  # Optional: PostgreSQL for advanced analytics
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: arb_translator
+      POSTGRES_USER: arbuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    profiles:
+      - enterprise
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  default:
+    name: arb-translator-network

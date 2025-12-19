@@ -1,0 +1,67 @@
+name: ARB Translation
+
+on:
+  push:
+    paths:
+      - 'lib/l10n/*.arb'
+      - '.github/workflows/arb-translation.yml'
+  pull_request:
+    paths:
+      - 'lib/l10n/*.arb'
+
+jobs:
+  analyze-and-translate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        sdk: '3.2.0'
+
+    - name: Install ARB Translator
+      run: dart pub global activate arb_translator_gen_z
+
+    - name: Analyze ARB files
+      run: |
+        echo "🔍 Analyzing ARB files..."
+        arb_translator --analyze -s lib/l10n/ || true
+
+    - name: Validate ARB files
+      run: |
+        echo "✅ Validating ARB files..."
+        arb_translator -s lib/l10n/app_en.arb --validate-only
+
+    - name: Translate to supported languages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        echo "🌐 Translating ARB files..."
+        arb_translator -s lib/l10n/app_en.arb -l "fr es de it pt ru ja ko zh ar hi" --overwrite
+
+    - name: Check translation completeness
+      run: |
+        echo "📊 Checking translation completeness..."
+        arb_translator --analyze -s lib/l10n/ | tee analysis.txt
+
+        # Check if completeness is above threshold
+        completeness=$(grep "Overall Completeness" analysis.txt | grep -o "[0-9.]*%")
+        echo "Current completeness: $completeness"
+
+        # Extract percentage value
+        percentage=$(echo $completeness | sed 's/%//')
+
+        if (( $(echo "$percentage < 90.0" | bc -l) )); then
+          echo "❌ Translation completeness too low: $completeness"
+          echo "Required: 90% minimum"
+          exit 1
+        fi
+
+    - name: Upload translation report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: translation-analysis
+        path: analysis.txt

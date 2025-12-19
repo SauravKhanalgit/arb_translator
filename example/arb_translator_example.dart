@@ -36,7 +36,7 @@ Future<void> basicTranslationExample() async {
     logger.initialize(config.logLevel);
 
     // Create translator
-    final translator = ArbTranslator(config);
+    final translator = LocalizationTranslator(config);
 
     // Translate to French
     final outputPath = await translator.generateArbForLanguage(

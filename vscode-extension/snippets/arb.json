@@ -1,0 +1,136 @@
+{
+  "ARB File Template": {
+    "prefix": "arb-template",
+    "body": [
+      "{",
+      "\t\"@@locale\": \"${1:en}\",",
+      "\t\"@@last_modified\": \"${2:${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}T${CURRENT_HOUR}:${CURRENT_MINUTE}:${CURRENT_SECOND}Z}\",",
+      "\t\"@@author\": \"${3:Your Name}\",",
+      "\t",
+      "\t\"appTitle\": \"${4:My App}\",",
+      "\t\"@appTitle\": {",
+      "\t\t\"description\": \"${5:The title of the application}\"",
+      "\t},",
+      "\t",
+      "\t\"welcomeMessage\": \"${6:Welcome to our app!}\",",
+      "\t\"@welcomeMessage\": {",
+      "\t\t\"description\": \"${7:A welcome message for users}\"",
+      "\t}",
+      "}"
+    ],
+    "description": "Complete ARB file template with metadata"
+  },
+
+  "Simple Translation Entry": {
+    "prefix": "arb-entry",
+    "body": [
+      "\"${1:key}\": \"${2:value}\",",
+      "\"@${1:key}\": {",
+      "\t\"description\": \"${3:description}\"",
+      "},"
+    ],
+    "description": "Simple translation entry with metadata"
+  },
+
+  "Translation with Placeholder": {
+    "prefix": "arb-placeholder",
+    "body": [
+      "\"${1:greeting}\": \"Hello, {${2:name}}!\",",
+      "\"@${1:greeting}\": {",
+      "\t\"description\": \"${3:A personalized greeting}\",",
+      "\t\"placeholders\": {",
+      "\t\t\"${2:name}\": {",
+      "\t\t\t\"type\": \"String\",",
+      "\t\t\t\"example\": \"${4:John}\"",
+      "\t\t}",
+      "\t}",
+      "}"
+    ],
+    "description": "Translation entry with string placeholder"
+  },
+
+  "Plural Translation": {
+    "prefix": "arb-plural",
+    "body": [
+      "\"${1:itemCount}\": \"{count, plural, =0{no items} =1{1 item} other{{count} items}}\",",
+      "\"@${1:itemCount}\": {",
+      "\t\"description\": \"${2:Display item count with proper pluralization}\",",
+      "\t\"placeholders\": {",
+      "\t\t\"count\": {",
+      "\t\t\t\"type\": \"int\",",
+      "\t\t\t\"format\": \"compact\"",
+      "\t\t}",
+      "\t}",
+      "}"
+    ],
+    "description": "ICU pluralization message"
+  },
+
+  "Date/Time Translation": {
+    "prefix": "arb-datetime",
+    "body": [
+      "\"${1:lastLogin}\": \"Last login: {date, date, short}\",",
+      "\"@${1:lastLogin}\": {",
+      "\t\"description\": \"${2:Display user's last login date}\",",
+      "\t\"placeholders\": {",
+      "\t\t\"date\": {",
+      "\t\t\t\"type\": \"DateTime\",",
+      "\t\t\t\"format\": \"yMd\"",
+      "\t\t}",
+      "\t}",
+      "}"
+    ],
+    "description": "Date/time formatting translation"
+  },
+
+  "Currency Translation": {
+    "prefix": "arb-currency",
+    "body": [
+      "\"${1:price}\": \"{amount, number, currency}\",",
+      "\"@${1:price}\": {",
+      "\t\"description\": \"${2:Display price with currency formatting}\",",
+      "\t\"placeholders\": {",
+      "\t\t\"amount\": {",
+      "\t\t\t\"type\": \"double\",",
+      "\t\t\t\"format\": \"currency\",",
+      "\t\t\t\"example\": \"${3:29.99}\"",
+      "\t\t}",
+      "\t}",
+      "}"
+    ],
+    "description": "Currency formatting translation"
+  },
+
+  "Error Message": {
+    "prefix": "arb-error",
+    "body": [
+      "\"${1:errorNetwork}\": \"${2:Network error, please try again.}\",",
+      "\"@${1:errorNetwork}\": {",
+      "\t\"description\": \"${3:Error message for network connectivity issues}\"",
+      "},"
+    ],
+    "description": "Error message translation"
+  },
+
+  "Button/Action Text": {
+    "prefix": "arb-button",
+    "body": [
+      "\"${1:saveButton}\": \"${2:Save}\",",
+      "\"@${1:saveButton}\": {",
+      "\t\"description\": \"${3:Text for save button}\"",
+      "},"
+    ],
+    "description": "Button or action text translation"
+  },
+
+  "Navigation/Menu Item": {
+    "prefix": "arb-nav",
+    "body": [
+      "\"${1:homeTab}\": \"${2:Home}\",",
+      "\"@${1:homeTab}\": {",
+      "\t\"description\": \"${3:Home tab label in navigation}\"",
+      "},"
+    ],
+    "description": "Navigation or menu item translation"
+  }
+}

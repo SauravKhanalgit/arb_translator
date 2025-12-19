@@ -29,7 +29,7 @@ Future<void> errorHandlingExample() async {
   print('=== Error Handling Example ===');
 
   final config = await TranslatorConfig.fromFile();
-  final translator = ArbTranslator(config);
+  final translator = LocalizationTranslator(config);
 
   try {
     await translator.generateArbForLanguage('nonexistent.arb', 'fr');
@@ -135,7 +135,7 @@ Future<void> batchProcessingExample() async {
   final logger = TranslatorLogger();
   logger.initialize(config.logLevel);
 
-  final translator = ArbTranslator(config);
+  final translator = LocalizationTranslator(config);
 
   try {
     // Define source files and target languages

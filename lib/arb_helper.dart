@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
+import 'package:collection/collection.dart';
 
 /// Enhanced ARB file operations with comprehensive validation and error handling.
 ///
@@ -224,6 +226,247 @@ class ArbHelper {
 
     return issues;
   }
+
+  /// Extracts context information for a translation key.
+  static Map<String, dynamic> extractTranslationContext(
+    Map<String, dynamic> arbContent,
+    String key, {
+    int contextRadius = 2,
+  }) {
+    final context = <String, dynamic>{};
+
+    // Get description from @key metadata
+    final descriptionKey = '@$key';
+    if (arbContent.containsKey(descriptionKey)) {
+      final description = arbContent[descriptionKey];
+      if (description is Map && description.containsKey('description')) {
+        context['description'] = description['description'];
+      }
+    }
+
+    // Get surrounding keys for context
+    final allKeys = arbContent.keys.where((k) => !k.startsWith('@')).toList();
+    final keyIndex = allKeys.indexOf(key);
+
+    if (keyIndex != -1) {
+      final surroundingContext = <String, String>{};
+
+      // Get keys before current key
+      for (var i = max(0, keyIndex - contextRadius); i < keyIndex; i++) {
+        final contextKey = allKeys[i];
+        final contextValue = arbContent[contextKey]?.toString() ?? '';
+        if (contextValue.isNotEmpty && contextValue.length < 100) {
+          surroundingContext['prev_${contextKey}'] = contextValue;
+        }
+      }
+
+      // Get keys after current key
+      for (var i = keyIndex + 1; i < min(allKeys.length, keyIndex + contextRadius + 1); i++) {
+        final contextKey = allKeys[i];
+        final contextValue = arbContent[contextKey]?.toString() ?? '';
+        if (contextValue.isNotEmpty && contextValue.length < 100) {
+          surroundingContext['next_${contextKey}'] = contextValue;
+        }
+      }
+
+      if (surroundingContext.isNotEmpty) {
+        context['surrounding'] = surroundingContext;
+      }
+    }
+
+    // Add locale information
+    final locale = arbContent['@@locale']?.toString();
+    if (locale != null) {
+      context['locale'] = locale;
+    }
+
+    return context;
+  }
+
+  /// Analyzes ARB files for missing translations and inconsistencies.
+  static ArbAnalysisResult analyzeArbFiles(
+    Map<String, Map<String, dynamic>> arbFiles,
+  ) {
+    final baseFile = arbFiles.values.first;
+    final baseKeys = baseFile.keys.where((k) => !k.startsWith('@')).toSet();
+
+    final analysis = <String, ArbFileAnalysis>{};
+
+    for (final entry in arbFiles.entries) {
+      final locale = entry.key;
+      final content = entry.value;
+
+      final fileKeys = content.keys.where((k) => !k.startsWith('@')).toSet();
+      final missingKeys = baseKeys.difference(fileKeys);
+      final extraKeys = fileKeys.difference(baseKeys);
+
+      // Check for placeholder consistency
+      final placeholderIssues = <String>[];
+      for (final key in fileKeys.intersection(baseKeys)) {
+        final baseValue = baseFile[key]?.toString() ?? '';
+        final fileValue = content[key]?.toString() ?? '';
+
+        final basePlaceholders = _extractPlaceholders(baseValue);
+        final filePlaceholders = _extractPlaceholders(fileValue);
+
+        if (!const SetEquality().equals(basePlaceholders, filePlaceholders)) {
+          placeholderIssues.add(key);
+        }
+      }
+
+      analysis[locale] = ArbFileAnalysis(
+        totalKeys: fileKeys.length,
+        missingKeys: missingKeys,
+        extraKeys: extraKeys,
+        placeholderIssues: placeholderIssues,
+        completenessPercentage: (fileKeys.length / baseKeys.length) * 100,
+      );
+    }
+
+    return ArbAnalysisResult(
+      baseLocale: baseFile['@@locale']?.toString() ?? 'en',
+      baseKeyCount: baseKeys.length,
+      fileAnalysis: analysis,
+    );
+  }
+
+  /// Suggests translations for missing keys based on similar existing translations.
+  static Map<String, String> suggestMissingTranslations(
+    Map<String, Map<String, dynamic>> arbFiles,
+    String targetLocale,
+  ) {
+    final suggestions = <String, String>{};
+    final targetFile = arbFiles[targetLocale];
+    final baseFile = arbFiles.values.first;
+
+    if (targetFile == null) return suggestions;
+
+    final baseKeys = baseFile.keys.where((k) => !k.startsWith('@')).toSet();
+    final targetKeys = targetFile.keys.where((k) => !k.startsWith('@')).toSet();
+    final missingKeys = baseKeys.difference(targetKeys);
+
+    for (final missingKey in missingKeys) {
+      // Find similar keys in target file
+      final similarTranslations = <String, String>{};
+      for (final targetKey in targetKeys) {
+        final similarity = _calculateSimilarity(missingKey, targetKey);
+        if (similarity > 0.6) { // 60% similarity threshold
+          final translation = targetFile[targetKey]?.toString() ?? '';
+          if (translation.isNotEmpty) {
+            similarTranslations[targetKey] = translation;
+          }
+        }
+      }
+
+      if (similarTranslations.isNotEmpty) {
+        // Use the most similar translation as suggestion
+        final bestMatch = similarTranslations.entries
+            .reduce((a, b) => _calculateSimilarity(missingKey, a.key) >
+                             _calculateSimilarity(missingKey, b.key) ? a : b);
+        suggestions[missingKey] = bestMatch.value;
+      }
+    }
+
+    return suggestions;
+  }
+
+  static Set<String> _extractPlaceholders(String text) {
+    final placeholders = <String>{};
+    final placeholderRegex = RegExp(r'\{([^}]+)\}|\$([a-zA-Z_][a-zA-Z0-9_]*)');
+    final matches = placeholderRegex.allMatches(text);
+
+    for (final match in matches) {
+      final placeholder = match.group(1) ?? match.group(2);
+      if (placeholder != null) {
+        placeholders.add(placeholder);
+      }
+    }
+
+    return placeholders;
+  }
+
+  static double _calculateSimilarity(String a, String b) {
+    if (a == b) return 1.0;
+    if (a.isEmpty || b.isEmpty) return 0.0;
+
+    final aWords = a.toLowerCase().split(RegExp(r'[_\s]+'));
+    final bWords = b.toLowerCase().split(RegExp(r'[_\s]+'));
+
+    final commonWords = aWords.where((word) => bWords.contains(word)).length;
+    final totalWords = (aWords.length + bWords.length) / 2;
+
+    return totalWords > 0 ? commonWords / totalWords : 0.0;
+  }
+}
+
+/// Result of ARB file analysis.
+class ArbAnalysisResult {
+  /// Creates an [ArbAnalysisResult] with the given parameters.
+  const ArbAnalysisResult({
+    required this.baseLocale,
+    required this.baseKeyCount,
+    required this.fileAnalysis,
+  });
+
+  /// The base locale used for comparison.
+  final String baseLocale;
+
+  /// Total number of keys in the base file.
+  final int baseKeyCount;
+
+  /// Analysis results for each ARB file.
+  final Map<String, ArbFileAnalysis> fileAnalysis;
+
+  /// Gets overall project completeness percentage.
+  double get overallCompleteness {
+    if (fileAnalysis.isEmpty) return 100.0;
+
+    final totalCompleteness = fileAnalysis.values
+        .map((analysis) => analysis.completenessPercentage)
+        .reduce((a, b) => a + b);
+
+    return totalCompleteness / fileAnalysis.length;
+  }
+
+  /// Gets total number of missing keys across all files.
+  int get totalMissingKeys {
+    return fileAnalysis.values
+        .map((analysis) => analysis.missingKeys.length)
+        .fold(0, (a, b) => a + b);
+  }
+}
+
+/// Analysis result for a single ARB file.
+class ArbFileAnalysis {
+  /// Creates an [ArbFileAnalysis] with the given parameters.
+  const ArbFileAnalysis({
+    required this.totalKeys,
+    required this.missingKeys,
+    required this.extraKeys,
+    required this.placeholderIssues,
+    required this.completenessPercentage,
+  });
+
+  /// Total number of translation keys in this file.
+  final int totalKeys;
+
+  /// Keys that are missing compared to the base file.
+  final Set<String> missingKeys;
+
+  /// Keys that exist in this file but not in the base file.
+  final Set<String> extraKeys;
+
+  /// Keys with placeholder consistency issues.
+  final List<String> placeholderIssues;
+
+  /// Completeness percentage (0.0 to 100.0).
+  final double completenessPercentage;
+
+  /// Whether this file has any issues.
+  bool get hasIssues =>
+      missingKeys.isNotEmpty ||
+      extraKeys.isNotEmpty ||
+      placeholderIssues.isNotEmpty;
 }
 
 // Legacy functions for backward compatibility

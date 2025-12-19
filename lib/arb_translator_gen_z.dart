@@ -3,7 +3,7 @@
 /// A comprehensive Dart library for translating ARB (Application Resource Bundle)
 /// files with advanced features designed for production Flutter applications.
 ///
-/// ## Features (v2.1.0)
+/// ## Features (v3.1.0)
 ///
 /// - **100+ Language Support**: Translate to over 100 languages with native names and regional variants
 /// - **Translation Memory**: Intelligent caching system reducing API calls by up to 70%
@@ -32,7 +32,7 @@
 ///
 ///   try {
 ///     // Translate to French
-///     await translator.generateArbForLanguage('lib/l10n/app_en.arb', 'fr');
+///     await translator.generateForLanguage('lib/l10n/app_en.arb', 'fr');
 ///
 ///     // Batch translate to multiple languages
 ///     await translator.generateMultipleLanguages(
@@ -78,7 +78,7 @@
 ///
 /// ```dart
 /// try {
-///   await translator.generateArbForLanguage('source.arb', 'fr');
+///   await translator.generateForLanguage('source.arb', 'fr');
 /// } on ArbFileNotFoundException catch (e) {
 ///   print('Source file not found: ${e.filePath}');
 /// } on TranslationApiException catch (e) {
@@ -123,3 +123,27 @@ export 'src/exceptions/translation_exceptions.dart';
 // Logging system
 export 'src/logging/translator_logger.dart';
 export 'translator.dart';
+// AI Providers (v3.0.0)
+export 'src/ai_providers/ai_provider.dart';
+export 'src/ai_providers/ai_provider_manager.dart';
+export 'src/ai_providers/openai_provider.dart';
+export 'src/ai_providers/deepl_provider.dart';
+export 'src/ai_providers/azure_provider.dart';
+export 'src/ai_providers/aws_provider.dart';
+
+// Advanced Features (v3.2.0)
+export 'src/translation_memory/translation_memory.dart';
+export 'src/string_processing/complex_string_processor.dart';
+// Note: format_handler.dart conflicts with arb_helper.dart exports
+// export 'src/format_handlers/format_handler.dart';
+export 'src/plugins/plugin_system.dart';
+export 'src/terminology/terminology_manager.dart';
+export 'src/compliance/compliance_manager.dart';
+export 'src/analytics/analytics_manager.dart';
+
+// Web & Collaboration (v3.2.0)
+export 'src/web/web_server.dart';
+export 'src/collaboration/collaboration_manager.dart';
+
+// Distributed Processing (v3.2.0)
+export 'src/distributed/distributed_coordinator.dart';
