@@ -44,14 +44,19 @@ class DistributedCoordinator {
   late final Map<String, _TranslationTask> _failedTasks;
 
   /// Translation statistics.
-  int get totalTasks => _taskQueue.length + _activeTasks.length + _completedTasks.length + _failedTasks.length;
+  int get totalTasks =>
+      _taskQueue.length +
+      _activeTasks.length +
+      _completedTasks.length +
+      _failedTasks.length;
   int get pendingTasks => _taskQueue.length;
   int get activeTasks => _activeTasks.length;
   int get completedTasks => _completedTasks.length;
   int get failedTasks => _failedTasks.length;
 
   /// Performance metrics.
-  double get completionRate => totalTasks == 0 ? 0.0 : completedTasks / totalTasks;
+  double get completionRate =>
+      totalTasks == 0 ? 0.0 : completedTasks / totalTasks;
   Duration get averageTaskTime {
     if (_completedTasks.isEmpty) return Duration.zero;
 
@@ -115,14 +120,17 @@ class DistributedCoordinator {
       }
 
       final allCompleted = jobTasks.every((task) =>
-        task.status == _TaskStatus.completed || task.status == _TaskStatus.failed
-      );
+          task.status == _TaskStatus.completed ||
+          task.status == _TaskStatus.failed);
 
       if (allCompleted) {
         timer.cancel();
 
-        final completed = jobTasks.where((task) => task.status == _TaskStatus.completed).length;
-        final failed = jobTasks.where((task) => task.status == _TaskStatus.failed).length;
+        final completed = jobTasks
+            .where((task) => task.status == _TaskStatus.completed)
+            .length;
+        final failed =
+            jobTasks.where((task) => task.status == _TaskStatus.failed).length;
         final total = jobTasks.length;
 
         final result = {
@@ -150,10 +158,14 @@ class DistributedCoordinator {
       return {'error': 'Job not found'};
     }
 
-    final completed = jobTasks.where((task) => task.status == _TaskStatus.completed).length;
-    final failed = jobTasks.where((task) => task.status == _TaskStatus.failed).length;
-    final active = jobTasks.where((task) => task.status == _TaskStatus.active).length;
-    final pending = jobTasks.where((task) => task.status == _TaskStatus.pending).length;
+    final completed =
+        jobTasks.where((task) => task.status == _TaskStatus.completed).length;
+    final failed =
+        jobTasks.where((task) => task.status == _TaskStatus.failed).length;
+    final active =
+        jobTasks.where((task) => task.status == _TaskStatus.active).length;
+    final pending =
+        jobTasks.where((task) => task.status == _TaskStatus.pending).length;
     final total = jobTasks.length;
 
     return {
@@ -170,7 +182,8 @@ class DistributedCoordinator {
 
   /// Get overall coordinator statistics.
   Map<String, dynamic> getStatistics() {
-    final workerStats = _workers.map((worker) => worker.getStatistics()).toList();
+    final workerStats =
+        _workers.map((worker) => worker.getStatistics()).toList();
 
     return {
       'totalTasks': totalTasks,
@@ -242,14 +255,12 @@ class DistributedCoordinator {
   void _addTaskToQueue(_TranslationTask task) {
     // Insert based on priority (higher priority first)
     var inserted = false;
-    var i = 0;
     for (final queuedTask in _taskQueue) {
       if (task.priority > queuedTask.priority) {
         _taskQueue.addFirst(task);
         inserted = true;
         break;
       }
-      i++;
     }
 
     if (!inserted) {
@@ -262,14 +273,18 @@ class DistributedCoordinator {
     final allTasks = <_TranslationTask>[];
     allTasks.addAll(_taskQueue.where((task) => task.jobId == jobId));
     allTasks.addAll(_activeTasks.values.where((task) => task.jobId == jobId));
-    allTasks.addAll(_completedTasks.values.where((task) => task.jobId == jobId));
+    allTasks
+        .addAll(_completedTasks.values.where((task) => task.jobId == jobId));
     allTasks.addAll(_failedTasks.values.where((task) => task.jobId == jobId));
     return allTasks;
   }
 
   /// Calculate average completion time for job tasks.
   Duration _calculateJobAverageTime(List<_TranslationTask> tasks) {
-    final completedTasks = tasks.where((task) => task.status == _TaskStatus.completed && task.completedAt != null && task.startedAt != null);
+    final completedTasks = tasks.where((task) =>
+        task.status == _TaskStatus.completed &&
+        task.completedAt != null &&
+        task.startedAt != null);
 
     if (completedTasks.isEmpty) return Duration.zero;
 
@@ -311,7 +326,8 @@ class DistributedCoordinator {
     if (_taskQueue.isEmpty) return;
 
     // Find available workers
-    final availableWorkers = _workers.where((worker) => worker.isAvailable).toList();
+    final availableWorkers =
+        _workers.where((worker) => worker.isAvailable).toList();
 
     if (availableWorkers.isEmpty) return;
 
@@ -342,19 +358,22 @@ class DistributedCoordinator {
     final timedOutTasks = <_TranslationTask>[];
 
     for (final task in _activeTasks.values) {
-      if (task.startedAt != null && now.difference(task.startedAt!) > taskTimeout) {
+      if (task.startedAt != null &&
+          now.difference(task.startedAt!) > taskTimeout) {
         timedOutTasks.add(task);
       }
     }
 
     for (final task in timedOutTasks) {
-      _logger.warning('⏰ Task ${task.id} timed out after ${taskTimeout.inMinutes} minutes');
+      _logger.warning(
+          '⏰ Task ${task.id} timed out after ${taskTimeout.inMinutes} minutes');
       _handleTaskFailure(task, 'Task timeout');
     }
   }
 
   /// Handle task completion from a worker.
-  void _handleTaskCompletion(_TranslationTask task, Map<String, dynamic> result) {
+  void _handleTaskCompletion(
+      _TranslationTask task, Map<String, dynamic> result) {
     task.status = _TaskStatus.completed;
     task.completedAt = DateTime.now();
     task.result = result;
@@ -386,8 +405,8 @@ class DistributedWorker {
     required this.config,
     required DistributedCoordinator coordinator,
     required TranslatorLogger logger,
-  }) : _coordinator = coordinator,
-       _logger = logger;
+  })  : _coordinator = coordinator,
+        _logger = logger;
 
   /// Worker identifier.
   final String id;
@@ -404,7 +423,8 @@ class DistributedWorker {
   Timer? _processingTimer;
 
   /// Whether this worker is available for new tasks.
-  bool get isAvailable => _isRunning && _assignedTasks.length < 3; // Max 3 concurrent tasks
+  bool get isAvailable =>
+      _isRunning && _assignedTasks.length < 3; // Max 3 concurrent tasks
 
   /// Number of active tasks.
   int get activeTasks => _assignedTasks.length;
@@ -428,7 +448,7 @@ class DistributedWorker {
 
     // Wait for current tasks to complete
     while (_assignedTasks.isNotEmpty) {
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
     }
 
     _translator.dispose();
@@ -448,7 +468,8 @@ class DistributedWorker {
       'isRunning': _isRunning,
       'activeTasks': activeTasks,
       'available': isAvailable,
-      'uptime': DateTime.now().difference(DateTime.now()), // TODO: Track actual uptime
+      'uptime': DateTime.now()
+          .difference(DateTime.now()), // TODO: Track actual uptime
     };
   }
 
@@ -464,20 +485,21 @@ class DistributedWorker {
 
       final result = await _executeTranslationTask(task);
       _coordinator._handleTaskCompletion(task, result);
-
     } catch (e) {
       _coordinator._handleTaskFailure(task, e.toString());
     }
   }
 
   /// Execute a translation task.
-  Future<Map<String, dynamic>> _executeTranslationTask(_TranslationTask task) async {
+  Future<Map<String, dynamic>> _executeTranslationTask(
+      _TranslationTask task) async {
     final results = <String, dynamic>{};
     final startTime = DateTime.now();
 
     for (final language in task.targetLanguages) {
       try {
-        final targetPath = await _translator.generateForLanguage(task.sourceFile, language);
+        final targetPath =
+            await _translator.generateForLanguage(task.sourceFile, language);
 
         // Read the translated content
         final content = await File(targetPath).readAsString();
@@ -489,7 +511,6 @@ class DistributedWorker {
           'content': parsedContent,
           'translatedAt': DateTime.now().toIso8601String(),
         };
-
       } catch (e) {
         results[language] = {
           'success': false,
@@ -556,8 +577,8 @@ class _TranslationTask {
       'startedAt': startedAt?.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'duration': startedAt != null && completedAt != null
-        ? completedAt!.difference(startedAt!).inMilliseconds
-        : null,
+          ? completedAt!.difference(startedAt!).inMilliseconds
+          : null,
       'result': result,
       'error': error,
     };

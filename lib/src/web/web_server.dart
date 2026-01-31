@@ -134,8 +134,7 @@ class WebServer {
       final data = json.decode(body) as Map<String, dynamic>;
 
       final sourceContent = data['content'] as Map<String, dynamic>;
-      final targetLanguages = List<String>.from(data['languages'] ?? []);
-      final sourceFile = data['sourceFile'] as String? ?? 'web_upload.arb';
+      final targetLanguages = List<String>.from(data['languages'] as Iterable? ?? []);
 
       if (targetLanguages.isEmpty) {
         return Response.badRequest(body: json.encode({'error': 'No target languages specified'}));

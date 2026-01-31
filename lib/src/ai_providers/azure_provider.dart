@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// Microsoft Azure Translator provider.
 class AzureProvider extends AIProvider {
@@ -37,12 +35,12 @@ class AzureProvider extends AIProvider {
     validateAvailability();
 
     final startTime = DateTime.now();
-    final url = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=$sourceLang&to=$targetLang';
+    final url =
+        'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=$sourceLang&to=$targetLang';
 
     // For Azure, we can include context in the text
-    final enhancedText = description != null
-        ? '$text\n\nContext: $description'
-        : text;
+    final enhancedText =
+        description != null ? '$text\n\nContext: $description' : text;
 
     final body = <Map<String, dynamic>>[
       {'text': enhancedText}
@@ -56,7 +54,8 @@ class AzureProvider extends AIProvider {
 
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
-    logger.debug('Azure translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
+    logger.debug(
+        'Azure translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
 
     return TranslationResult(
       text: translatedText,
@@ -77,7 +76,8 @@ class AzureProvider extends AIProvider {
     validateAvailability();
 
     try {
-      final url = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=$sourceLang&to=$targetLang&includeAlignment=true';
+      final url =
+          'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=$sourceLang&to=$targetLang&includeAlignment=true';
 
       final body = <Map<String, dynamic>>[
         {'text': sourceText}

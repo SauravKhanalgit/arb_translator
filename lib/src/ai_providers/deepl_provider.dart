@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// DeepL provider for high-quality neural machine translation.
 class DeepLProvider extends AIProvider {
@@ -13,7 +11,8 @@ class DeepLProvider extends AIProvider {
   TranslationProvider get provider => TranslationProvider.deepl;
 
   @override
-  bool get isAvailable => config.deeplApiKey != null && config.deeplApiKey!.isNotEmpty;
+  bool get isAvailable =>
+      config.deeplApiKey != null && config.deeplApiKey!.isNotEmpty;
 
   @override
   double get costPerCharacter => 0.00002; // DeepL Pro pricing
@@ -41,9 +40,8 @@ class DeepLProvider extends AIProvider {
     final url = 'https://api.deepl.com/v2/translate';
 
     // For DeepL, we can include context in the text if provided
-    final enhancedText = description != null
-        ? '$text\n\nContext: $description'
-        : text;
+    final enhancedText =
+        description != null ? '$text\n\nContext: $description' : text;
 
     final body = {
       'text': [enhancedText],
@@ -56,11 +54,13 @@ class DeepLProvider extends AIProvider {
     final data = json.decode(response.body);
 
     final translatedText = data['translations'][0]['text'].toString();
-    final detectedSourceLang = data['translations'][0]['detected_source_language'];
+    final detectedSourceLang =
+        data['translations'][0]['detected_source_language'];
 
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
-    logger.debug('DeepL translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
+    logger.debug(
+        'DeepL translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
 
     return TranslationResult(
       text: translatedText,
@@ -81,8 +81,6 @@ class DeepLProvider extends AIProvider {
     // In a real implementation, you might use a separate quality assessment model
 
     validateAvailability();
-
-    final startTime = DateTime.now();
 
     final deeplSourceLang = _convertToDeeplCode(sourceLang);
     final deeplTargetLang = _convertToDeeplCode(targetLang);

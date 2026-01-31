@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
+import 'package:arb_translator_gen_z/src/format_handlers/format_handler.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -104,7 +105,8 @@ void main() {
     late String tempFile;
 
     setUp(() async {
-      tempFile = '/tmp/test_memory_${DateTime.now().millisecondsSinceEpoch}.json';
+      tempFile =
+          '/tmp/test_memory_${DateTime.now().millisecondsSinceEpoch}.json';
       memory = TranslationMemory(
         storagePath: tempFile,
         logger: TranslatorLogger(),
@@ -182,7 +184,8 @@ void main() {
         logger: TranslatorLogger(),
       );
 
-      final suggestion = newMemory.suggestTranslation('Test persistence', 'en', 'es');
+      final suggestion =
+          newMemory.suggestTranslation('Test persistence', 'en', 'es');
       expect(suggestion, equals('Prueba de persistencia'));
 
       await newMemory.dispose();
@@ -222,16 +225,19 @@ void main() {
     });
 
     test('Complex string parsing - placeholders', () {
-      final complex = ComplexString.parse('Hello {name}, you have {count} messages');
+      final complex =
+          ComplexString.parse('Hello {name}, you have {count} messages');
 
       expect(complex.placeholders, contains('{name}'));
       expect(complex.placeholders, contains('{count}'));
       expect(complex.isComplex, isTrue);
-      expect(complex.translatableSegments.length, equals(4)); // "Hello ", ", you have ", " messages"
+      expect(complex.translatableSegments.length,
+          equals(4)); // "Hello ", ", you have ", " messages"
     });
 
     test('Complex string parsing - dates', () {
-      final complex = ComplexString.parse('Today is 2024-01-15 and tomorrow is 01/16/2024');
+      final complex =
+          ComplexString.parse('Today is 2024-01-15 and tomorrow is 01/16/2024');
 
       expect(complex.datePatterns, contains('2024-01-15'));
       expect(complex.datePatterns, contains('01/16/2024'));

@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// OpenAI GPT provider for high-quality translations.
 class OpenAIProvider extends AIProvider {
@@ -13,10 +11,12 @@ class OpenAIProvider extends AIProvider {
   TranslationProvider get provider => TranslationProvider.openai;
 
   @override
-  bool get isAvailable => config.openaiApiKey != null && config.openaiApiKey!.isNotEmpty;
+  bool get isAvailable =>
+      config.openaiApiKey != null && config.openaiApiKey!.isNotEmpty;
 
   @override
-  double get costPerCharacter => 0.00002; // Approximate cost per character for GPT-3.5
+  double get costPerCharacter =>
+      0.00002; // Approximate cost per character for GPT-3.5
 
   @override
   int get maxCharactersPerRequest => 12000; // Conservative limit for GPT models
@@ -36,13 +36,16 @@ class OpenAIProvider extends AIProvider {
     const url = 'https://api.openai.com/v1/chat/completions';
 
     final prompt = _buildTranslationPrompt(text, sourceLang, targetLang,
-        description: description, surroundingContext: surroundingContext, keyName: keyName);
+        description: description,
+        surroundingContext: surroundingContext,
+        keyName: keyName);
     final body = {
       'model': 'gpt-3.5-turbo',
       'messages': [
         {
           'role': 'system',
-          'content': 'You are a professional translator specializing in software localization. Use the provided context to make accurate, culturally appropriate translations. Only return the translation, no explanations.',
+          'content':
+              'You are a professional translator specializing in software localization. Use the provided context to make accurate, culturally appropriate translations. Only return the translation, no explanations.',
         },
         {
           'role': 'user',
@@ -56,12 +59,14 @@ class OpenAIProvider extends AIProvider {
     final response = await makeRequest(url, body);
     final data = json.decode(response.body);
 
-    final translatedText = data['choices'][0]['message']['content'].toString().trim();
+    final translatedText =
+        data['choices'][0]['message']['content'].toString().trim();
     final tokensUsed = data['usage']['total_tokens'] as int;
 
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
-    logger.debug('OpenAI translation completed: ${translatedText.length} chars, $tokensUsed tokens');
+    logger.debug(
+        'OpenAI translation completed: ${translatedText.length} chars, $tokensUsed tokens');
 
     return TranslationResult(
       text: translatedText,
@@ -115,7 +120,8 @@ Return only a number between 0.0 and 1.0, no explanation.
     try {
       final response = await makeRequest(url, body);
       final data = json.decode(response.body);
-      final scoreText = data['choices'][0]['message']['content'].toString().trim();
+      final scoreText =
+          data['choices'][0]['message']['content'].toString().trim();
 
       // Parse the score
       final score = double.tryParse(scoreText) ?? 0.5;
@@ -158,7 +164,8 @@ Provide only the corrected translation, no explanations or additional text.
     try {
       final response = await makeRequest(url, body);
       final data = json.decode(response.body);
-      final correctedText = data['choices'][0]['message']['content'].toString().trim();
+      final correctedText =
+          data['choices'][0]['message']['content'].toString().trim();
 
       return correctedText.isNotEmpty ? correctedText : null;
     } catch (e) {
@@ -175,7 +182,10 @@ Provide only the corrected translation, no explanations or additional text.
     };
   }
 
-  String _buildTranslationPrompt(String text, String sourceLang, String targetLang, {
+  String _buildTranslationPrompt(
+    String text,
+    String sourceLang,
+    String targetLang, {
     String? description,
     Map<String, String>? surroundingContext,
     String? keyName,
@@ -185,7 +195,8 @@ Provide only the corrected translation, no explanations or additional text.
 
     final buffer = StringBuffer();
 
-    buffer.writeln('Translate the following text from $sourceLangName ($sourceLang) to $targetLangName ($targetLang):');
+    buffer.writeln(
+        'Translate the following text from $sourceLangName ($sourceLang) to $targetLangName ($targetLang):');
     buffer.writeln();
     buffer.writeln('Text: "$text"');
 
@@ -207,11 +218,16 @@ Provide only the corrected translation, no explanations or additional text.
 
     buffer.writeln();
     buffer.writeln('Important guidelines:');
-    buffer.writeln('- Preserve the exact meaning and tone of the original text');
-    buffer.writeln('- Consider the context and description for accurate translation');
-    buffer.writeln('- Keep technical terms and proper nouns as they are (unless they have standard translations)');
-    buffer.writeln('- Maintain any placeholders, variables, or special formatting (e.g., {name}, \${variable})');
-    buffer.writeln('- Ensure the translation is natural and fluent in $targetLangName');
+    buffer
+        .writeln('- Preserve the exact meaning and tone of the original text');
+    buffer.writeln(
+        '- Consider the context and description for accurate translation');
+    buffer.writeln(
+        '- Keep technical terms and proper nouns as they are (unless they have standard translations)');
+    buffer.writeln(
+        '- Maintain any placeholders, variables, or special formatting (e.g., {name}, \${variable})');
+    buffer.writeln(
+        '- Ensure the translation is natural and fluent in $targetLangName');
     buffer.writeln('- Do not add extra explanations or comments');
     buffer.writeln();
     buffer.writeln('Translation:');

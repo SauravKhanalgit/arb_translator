@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// Amazon Web Services Translate provider.
 class AWSProvider extends AIProvider {
@@ -50,9 +49,8 @@ class AWSProvider extends AIProvider {
     final date = dateStamp.substring(0, 8);
 
     // For AWS, we can include context in the text
-    final enhancedText = description != null
-        ? '$text\n\nContext: $description'
-        : text;
+    final enhancedText =
+        description != null ? '$text\n\nContext: $description' : text;
 
     final payload = {
       'Text': enhancedText,
@@ -60,11 +58,15 @@ class AWSProvider extends AIProvider {
       'TargetLanguageCode': awsTargetLang,
     };
 
-    final canonicalRequest = _buildCanonicalRequest('POST', '/', payload, dateStamp, date);
-    final stringToSign = _buildStringToSign(canonicalRequest, date, config.awsTranslateRegion);
-    final signature = _calculateSignature(stringToSign, date, config.awsTranslateRegion);
+    final canonicalRequest =
+        _buildCanonicalRequest('POST', '/', payload, dateStamp, date);
+    final stringToSign =
+        _buildStringToSign(canonicalRequest, date, config.awsTranslateRegion);
+    final signature =
+        _calculateSignature(stringToSign, date, config.awsTranslateRegion);
 
-    final authorization = 'AWS4-HMAC-SHA256 Credential=${config.awsTranslateAccessKey}/$date/${config.awsTranslateRegion}/translate/aws4_request, SignedHeaders=host;x-amz-date, Signature=$signature';
+    final authorization =
+        'AWS4-HMAC-SHA256 Credential=${config.awsTranslateAccessKey}/$date/${config.awsTranslateRegion}/translate/aws4_request, SignedHeaders=host;x-amz-date, Signature=$signature';
 
     final headers = {
       'Authorization': authorization,
@@ -73,11 +75,13 @@ class AWSProvider extends AIProvider {
       'X-Amz-Target': 'AWSShineFrontendService_20170701.TranslateText',
     };
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: headers,
-      body: json.encode(payload),
-    ).timeout(Duration(milliseconds: 30000));
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: json.encode(payload),
+        )
+        .timeout(Duration(milliseconds: 30000));
 
     if (response.statusCode != 200) {
       throw AIProviderException(
@@ -162,32 +166,49 @@ class AWSProvider extends AIProvider {
   }
 
   String _formatDate(DateTime date) {
-    return date.toIso8601String().replaceAll('-', '').replaceAll(':', '').split('.').first + 'Z';
+    return date
+            .toIso8601String()
+            .replaceAll('-', '')
+            .replaceAll(':', '')
+            .split('.')
+            .first +
+        'Z';
   }
 
-  String _buildCanonicalRequest(String method, String canonicalUri, Map<String, dynamic> payload, String dateStamp, String date) {
-    final payloadHash = sha256.convert(utf8.encode(json.encode(payload))).toString();
-    final canonicalHeaders = 'host:translate.${config.awsTranslateRegion}.amazonaws.com\nx-amz-date:$dateStamp\n';
+  String _buildCanonicalRequest(String method, String canonicalUri,
+      Map<String, dynamic> payload, String dateStamp, String date) {
+    final payloadHash =
+        sha256.convert(utf8.encode(json.encode(payload))).toString();
+    final canonicalHeaders =
+        'host:translate.${config.awsTranslateRegion}.amazonaws.com\nx-amz-date:$dateStamp\n';
     final signedHeaders = 'host;x-amz-date';
 
     return '$method\n$canonicalUri\n\n$canonicalHeaders\n$signedHeaders\n$payloadHash';
   }
 
-  String _buildStringToSign(String canonicalRequest, String date, String region) {
+  String _buildStringToSign(
+      String canonicalRequest, String date, String region) {
     final algorithm = 'AWS4-HMAC-SHA256';
     final credentialScope = '$date/$region/translate/aws4_request';
-    final canonicalRequestHash = sha256.convert(utf8.encode(canonicalRequest)).toString();
+    final canonicalRequestHash =
+        sha256.convert(utf8.encode(canonicalRequest)).toString();
 
     return '$algorithm\n$date\n$credentialScope\n$canonicalRequestHash';
   }
 
   String _calculateSignature(String stringToSign, String date, String region) {
-    final kDate = Hmac(sha256, utf8.encode('AWS4${config.awsTranslateSecretKey}')).convert(utf8.encode(date));
+    final kDate =
+        Hmac(sha256, utf8.encode('AWS4${config.awsTranslateSecretKey}'))
+            .convert(utf8.encode(date));
     final kRegion = Hmac(sha256, kDate.bytes).convert(utf8.encode(region));
-    final kService = Hmac(sha256, kRegion.bytes).convert(utf8.encode('translate'));
-    final kSigning = Hmac(sha256, kService.bytes).convert(utf8.encode('aws4_request'));
+    final kService =
+        Hmac(sha256, kRegion.bytes).convert(utf8.encode('translate'));
+    final kSigning =
+        Hmac(sha256, kService.bytes).convert(utf8.encode('aws4_request'));
 
-    return Hmac(sha256, kSigning.bytes).convert(utf8.encode(stringToSign)).toString();
+    return Hmac(sha256, kSigning.bytes)
+        .convert(utf8.encode(stringToSign))
+        .toString();
   }
 
   /// Simple string similarity calculation.

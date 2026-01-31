@@ -34,23 +34,23 @@ class AnalyticsEvent {
 
   /// Convert to JSON.
   Map<String, dynamic> toJson() => {
-    'timestamp': timestamp.toIso8601String(),
-    'eventType': eventType,
-    'userId': userId,
-    'sessionId': sessionId,
-    'properties': properties,
-    'metadata': metadata,
-  };
+        'timestamp': timestamp.toIso8601String(),
+        'eventType': eventType,
+        'userId': userId,
+        'sessionId': sessionId,
+        'properties': properties,
+        'metadata': metadata,
+      };
 
   /// Create from JSON.
   factory AnalyticsEvent.fromJson(Map<String, dynamic> json) => AnalyticsEvent(
-    timestamp: DateTime.parse(json['timestamp']),
-    eventType: json['eventType'],
-    userId: json['userId'],
-    sessionId: json['sessionId'],
-    properties: json['properties'] as Map<String, dynamic>,
-    metadata: json['metadata'] as Map<String, dynamic>?,
-  );
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        eventType: json['eventType'] as String,
+        userId: json['userId'] as String,
+        sessionId: json['sessionId'] as String,
+        properties: json['properties'] as Map<String, dynamic>,
+        metadata: json['metadata'] as Map<String, dynamic>?,
+      );
 }
 
 /// Translation metrics for performance tracking.
@@ -96,21 +96,22 @@ class TranslationMetrics {
   final double errorRate;
 
   /// Success rate (0.0 to 1.0).
-  double get successRate => totalTranslations > 0 ? successfulTranslations / totalTranslations : 0.0;
+  double get successRate =>
+      totalTranslations > 0 ? successfulTranslations / totalTranslations : 0.0;
 
   /// Convert to JSON.
   Map<String, dynamic> toJson() => {
-    'totalTranslations': totalTranslations,
-    'successfulTranslations': successfulTranslations,
-    'failedTranslations': failedTranslations,
-    'averageQualityScore': averageQualityScore,
-    'averageProcessingTime': averageProcessingTime,
-    'providerUsage': providerUsage,
-    'languagePairs': languagePairs,
-    'cacheHitRate': cacheHitRate,
-    'errorRate': errorRate,
-    'successRate': successRate,
-  };
+        'totalTranslations': totalTranslations,
+        'successfulTranslations': successfulTranslations,
+        'failedTranslations': failedTranslations,
+        'averageQualityScore': averageQualityScore,
+        'averageProcessingTime': averageProcessingTime,
+        'providerUsage': providerUsage,
+        'languagePairs': languagePairs,
+        'cacheHitRate': cacheHitRate,
+        'errorRate': errorRate,
+        'successRate': successRate,
+      };
 }
 
 /// User engagement metrics.
@@ -312,7 +313,8 @@ class AnalyticsManager {
     }
 
     final totalTranslations = relevantEvents.length;
-    final successfulEvents = relevantEvents.where((e) => e.properties['success'] == true);
+    final successfulEvents =
+        relevantEvents.where((e) => e.properties['success'] == true);
     final successfulTranslations = successfulEvents.length;
     final failedTranslations = totalTranslations - successfulTranslations;
 
@@ -351,11 +353,14 @@ class AnalyticsManager {
     }
 
     // Cache hit rate
-    final cacheHits = relevantEvents.where((e) => e.properties['cacheHit'] == true).length;
-    final cacheHitRate = totalTranslations > 0 ? cacheHits / totalTranslations : 0.0;
+    final cacheHits =
+        relevantEvents.where((e) => e.properties['cacheHit'] == true).length;
+    final cacheHitRate =
+        totalTranslations > 0 ? cacheHits / totalTranslations : 0.0;
 
     // Error rate
-    final errors = relevantEvents.where((e) => e.properties['errorType'] != null).length;
+    final errors =
+        relevantEvents.where((e) => e.properties['errorType'] != null).length;
     final errorRate = totalTranslations > 0 ? errors / totalTranslations : 0.0;
 
     _cachedMetrics = TranslationMetrics(
@@ -396,7 +401,9 @@ class AnalyticsManager {
     // Average session duration (simplified)
     final sessionDurations = <String, List<DateTime>>{};
     for (final event in relevantEvents) {
-      sessionDurations.putIfAbsent(event.sessionId, () => []).add(event.timestamp);
+      sessionDurations
+          .putIfAbsent(event.sessionId, () => [])
+          .add(event.timestamp);
     }
 
     var totalSessionTime = 0.0;
@@ -410,22 +417,22 @@ class AnalyticsManager {
       }
     }
 
-    final averageSessionDuration = sessionCount > 0 ? totalSessionTime / sessionCount : 0.0;
+    final averageSessionDuration =
+        sessionCount > 0 ? totalSessionTime / sessionCount : 0.0;
 
     // Most used features
     final featureUsage = <String, int>{};
-    final featureEvents = relevantEvents.where((e) => e.eventType == 'feature_usage');
+    final featureEvents =
+        relevantEvents.where((e) => e.eventType == 'feature_usage');
     for (final event in featureEvents) {
       final feature = event.properties['feature'] as String? ?? 'unknown';
       featureUsage[feature] = (featureUsage[feature] ?? 0) + 1;
     }
 
     // Sort by usage
-    final mostUsedFeatures = Map.fromEntries(
-      featureUsage.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value))
-        ..take(10)
-    );
+    final mostUsedFeatures = Map.fromEntries(featureUsage.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value))
+      ..take(10));
 
     // User retention rate (simplified - users with events in both halves of period)
     final retentionRate = _calculateRetentionRate(relevantEvents);
@@ -438,7 +445,8 @@ class AnalyticsManager {
           .map((e) => e.userId)
           .toSet()
           .length;
-      featureAdoption[feature] = totalUsers > 0 ? usersUsingFeature / totalUsers : 0.0;
+      featureAdoption[feature] =
+          totalUsers > 0 ? usersUsingFeature / totalUsers : 0.0;
     }
 
     return UserEngagementMetrics(
@@ -456,8 +464,10 @@ class AnalyticsManager {
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
-    final translationMetrics = await getTranslationMetrics(fromDate: fromDate, toDate: toDate);
-    final engagementMetrics = await getUserEngagementMetrics(fromDate: fromDate, toDate: toDate);
+    final translationMetrics =
+        await getTranslationMetrics(fromDate: fromDate, toDate: toDate);
+    final engagementMetrics =
+        await getUserEngagementMetrics(fromDate: fromDate, toDate: toDate);
 
     final report = {
       'generatedAt': DateTime.now().toIso8601String(),
@@ -468,8 +478,12 @@ class AnalyticsManager {
       'summary': {
         'totalEvents': _events.length,
         'dateRange': {
-          'oldest': _events.isNotEmpty ? _events.first.timestamp.toIso8601String() : null,
-          'newest': _events.isNotEmpty ? _events.last.timestamp.toIso8601String() : null,
+          'oldest': _events.isNotEmpty
+              ? _events.first.timestamp.toIso8601String()
+              : null,
+          'newest': _events.isNotEmpty
+              ? _events.last.timestamp.toIso8601String()
+              : null,
         },
       },
       'translationMetrics': translationMetrics.toJson(),
@@ -556,7 +570,9 @@ class AnalyticsManager {
     final secondHalfUsers = secondHalf.map((e) => e.userId).toSet();
 
     final retainedUsers = firstHalfUsers.intersection(secondHalfUsers).length;
-    return firstHalfUsers.isNotEmpty ? retainedUsers / firstHalfUsers.length : 0.0;
+    return firstHalfUsers.isNotEmpty
+        ? retainedUsers / firstHalfUsers.length
+        : 0.0;
   }
 
   /// Load events from disk.
@@ -570,7 +586,8 @@ class AnalyticsManager {
 
       final events = data['events'] as List<dynamic>;
       for (final eventJson in events) {
-        final event = AnalyticsEvent.fromJson(eventJson);
+        final event =
+            AnalyticsEvent.fromJson(eventJson as Map<String, dynamic>);
         _events.add(event);
       }
 
@@ -591,7 +608,8 @@ class AnalyticsManager {
         final content = await analyticsFile.readAsString();
         final data = json.decode(content) as Map<String, dynamic>;
         final events = data['events'] as List<dynamic>;
-        existingEvents.addAll(events.map((e) => AnalyticsEvent.fromJson(e)));
+        existingEvents.addAll(events
+            .map((e) => AnalyticsEvent.fromJson(e as Map<String, dynamic>)));
       }
 
       existingEvents.add(event);
@@ -660,17 +678,14 @@ class AnalyticsIntegration {
         'errorRate': translationMetrics.errorRate,
       },
       'usage': {
-        'topProviders': translationMetrics.providerUsage.entries
-            .toList()
-            ..sort((a, b) => b.value.compareTo(a.value))
-            ..take(5),
-        'topLanguagePairs': translationMetrics.languagePairs.entries
-            .toList()
-            ..sort((a, b) => b.value.compareTo(a.value))
-            ..take(5),
-        'topFeatures': engagementMetrics.mostUsedFeatures.entries
-            .toList()
-            ..take(5),
+        'topProviders': translationMetrics.providerUsage.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value))
+          ..take(5),
+        'topLanguagePairs': translationMetrics.languagePairs.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value))
+          ..take(5),
+        'topFeatures': engagementMetrics.mostUsedFeatures.entries.toList()
+          ..take(5),
       },
       'trends': {
         'userRetention': engagementMetrics.userRetentionRate,
@@ -726,13 +741,13 @@ class AnalyticsIntegration {
     <h2>Top Providers</h2>
     <table>
         <tr><th>Provider</th><th>Usage Count</th></tr>
-        ${dashboardData['usage']['topProviders'].map((entry) => '<tr><td>${entry['key']}</td><td>${entry['value']}</td></tr>').join()}
+        ${dashboardData['usage']['topProviders'].map((dynamic entry) => '<tr><td>${entry['key']}</td><td>${entry['value']}</td></tr>').join()}
     </table>
 
     <h2>Top Language Pairs</h2>
     <table>
         <tr><th>Language Pair</th><th>Usage Count</th></tr>
-        ${dashboardData['usage']['topLanguagePairs'].map((entry) => '<tr><td>${entry['key']}</td><td>${entry['value']}</td></tr>').join()}
+        ${dashboardData['usage']['topLanguagePairs'].map((dynamic entry) => '<tr><td>${entry['key']}</td><td>${entry['value']}</td></tr>').join()}
     </table>
 </body>
 </html>

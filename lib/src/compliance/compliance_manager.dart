@@ -47,29 +47,29 @@ class AuditEntry {
 
   /// Convert to JSON for storage.
   Map<String, dynamic> toJson() => {
-    'timestamp': timestamp.toIso8601String(),
-    'action': action,
-    'userId': userId,
-    'resource': resource,
-    'details': details,
-    'ipAddress': _anonymizeIp(ipAddress),
-    'userAgent': userAgent,
-    'sessionId': sessionId,
-    'confidential': confidential,
-  };
+        'timestamp': timestamp.toIso8601String(),
+        'action': action,
+        'userId': userId,
+        'resource': resource,
+        'details': details,
+        'ipAddress': _anonymizeIp(ipAddress),
+        'userAgent': userAgent,
+        'sessionId': sessionId,
+        'confidential': confidential,
+      };
 
   /// Create from JSON.
   factory AuditEntry.fromJson(Map<String, dynamic> json) => AuditEntry(
-    timestamp: DateTime.parse(json['timestamp']),
-    action: json['action'],
-    userId: json['userId'],
-    resource: json['resource'],
-    details: json['details'] as Map<String, dynamic>,
-    ipAddress: json['ipAddress'],
-    userAgent: json['userAgent'],
-    sessionId: json['sessionId'],
-    confidential: json['confidential'] ?? false,
-  );
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        action: json['action'] as String,
+        userId: json['userId'] as String,
+        resource: json['resource'] as String,
+        details: json['details'] as Map<String, dynamic>,
+        ipAddress: json['ipAddress'] as String,
+        userAgent: json['userAgent'] as String,
+        sessionId: json['sessionId'] as String?,
+        confidential: json['confidential'] as bool? ?? false,
+      );
 
   /// Anonymize IP address for GDPR compliance.
   static String _anonymizeIp(String ip) {
@@ -127,21 +127,23 @@ class RetentionPolicy {
 
   /// Convert to JSON.
   Map<String, dynamic> toJson() => {
-    'dataType': dataType,
-    'retentionPeriod': retentionPeriod,
-    'deletionMethod': deletionMethod,
-    'autoDelete': autoDelete,
-    'complianceFrameworks': complianceFrameworks,
-  };
+        'dataType': dataType,
+        'retentionPeriod': retentionPeriod,
+        'deletionMethod': deletionMethod,
+        'autoDelete': autoDelete,
+        'complianceFrameworks': complianceFrameworks,
+      };
 
   /// Create from JSON.
-  factory RetentionPolicy.fromJson(Map<String, dynamic> json) => RetentionPolicy(
-    dataType: json['dataType'],
-    retentionPeriod: json['retentionPeriod'],
-    deletionMethod: json['deletionMethod'],
-    autoDelete: json['autoDelete'] ?? true,
-    complianceFrameworks: List<String>.from(json['complianceFrameworks'] ?? []),
-  );
+  factory RetentionPolicy.fromJson(Map<String, dynamic> json) =>
+      RetentionPolicy(
+        dataType: json['dataType'] as String,
+        retentionPeriod: json['retentionPeriod'] as int,
+        deletionMethod: json['deletionMethod'] as String,
+        autoDelete: json['autoDelete'] as bool? ?? true,
+        complianceFrameworks:
+            List<String>.from(json['complianceFrameworks'] as Iterable? ?? []),
+      );
 }
 
 /// Privacy settings for GDPR compliance.
@@ -182,51 +184,55 @@ class PrivacySettings {
 
   /// Convert to JSON.
   Map<String, dynamic> toJson() => {
-    'dataCollectionEnabled': dataCollectionEnabled,
-    'analyticsEnabled': analyticsEnabled,
-    'errorReportingEnabled': errorReportingEnabled,
-    'personalizationEnabled': personalizationEnabled,
-    'retentionPolicies': retentionPolicies.map((p) => p.toJson()).toList(),
-  };
+        'dataCollectionEnabled': dataCollectionEnabled,
+        'analyticsEnabled': analyticsEnabled,
+        'errorReportingEnabled': errorReportingEnabled,
+        'personalizationEnabled': personalizationEnabled,
+        'retentionPolicies': retentionPolicies.map((p) => p.toJson()).toList(),
+      };
 
   /// Create from JSON.
-  factory PrivacySettings.fromJson(Map<String, dynamic> json) => PrivacySettings(
-    dataCollectionEnabled: json['dataCollectionEnabled'] ?? false,
-    analyticsEnabled: json['analyticsEnabled'] ?? false,
-    errorReportingEnabled: json['errorReportingEnabled'] ?? false,
-    personalizationEnabled: json['personalizationEnabled'] ?? false,
-    retentionPolicies: (json['retentionPolicies'] as List<dynamic>?)
-        ?.map((p) => RetentionPolicy.fromJson(p))
-        .toList() ?? [],
-  );
+  factory PrivacySettings.fromJson(Map<String, dynamic> json) =>
+      PrivacySettings(
+        dataCollectionEnabled: json['dataCollectionEnabled'] as bool? ?? false,
+        analyticsEnabled: json['analyticsEnabled'] as bool? ?? false,
+        errorReportingEnabled: json['errorReportingEnabled'] as bool? ?? false,
+        personalizationEnabled:
+            json['personalizationEnabled'] as bool? ?? false,
+        retentionPolicies: (json['retentionPolicies'] as List<dynamic>?)
+                ?.map(
+                    (p) => RetentionPolicy.fromJson(p as Map<String, dynamic>))
+                .toList() ??
+            [],
+      );
 
   /// Default GDPR-compliant settings.
   factory PrivacySettings.gdprCompliant() => const PrivacySettings(
-    dataCollectionEnabled: false,
-    analyticsEnabled: false,
-    errorReportingEnabled: false,
-    personalizationEnabled: false,
-    retentionPolicies: [
-      RetentionPolicy(
-        dataType: 'audit_logs',
-        retentionPeriod: 2555, // 7 years for GDPR
-        deletionMethod: 'delete',
-        complianceFrameworks: ['GDPR'],
-      ),
-      RetentionPolicy(
-        dataType: 'translation_memory',
-        retentionPeriod: 1825, // 5 years
-        deletionMethod: 'anonymize',
-        complianceFrameworks: ['GDPR'],
-      ),
-      RetentionPolicy(
-        dataType: 'user_sessions',
-        retentionPeriod: 30, // 30 days
-        deletionMethod: 'delete',
-        complianceFrameworks: ['GDPR'],
-      ),
-    ],
-  );
+        dataCollectionEnabled: false,
+        analyticsEnabled: false,
+        errorReportingEnabled: false,
+        personalizationEnabled: false,
+        retentionPolicies: [
+          RetentionPolicy(
+            dataType: 'audit_logs',
+            retentionPeriod: 2555, // 7 years for GDPR
+            deletionMethod: 'delete',
+            complianceFrameworks: ['GDPR'],
+          ),
+          RetentionPolicy(
+            dataType: 'translation_memory',
+            retentionPeriod: 1825, // 5 years
+            deletionMethod: 'anonymize',
+            complianceFrameworks: ['GDPR'],
+          ),
+          RetentionPolicy(
+            dataType: 'user_sessions',
+            retentionPeriod: 30, // 30 days
+            deletionMethod: 'delete',
+            complianceFrameworks: ['GDPR'],
+          ),
+        ],
+      );
 }
 
 /// Comprehensive compliance manager for GDPR, audit logging, and data retention.
@@ -351,12 +357,14 @@ class ComplianceManager {
 
     // Check privacy settings
     if (privacySettings.dataCollectionEnabled) {
-      status['issues'].add('Data collection is enabled - ensure proper consent');
+      status['issues']
+          .add('Data collection is enabled - ensure proper consent');
       status['gdprCompliant'] = false;
     }
 
     if (privacySettings.analyticsEnabled) {
-      status['issues'].add('Analytics collection enabled - ensure proper consent');
+      status['issues']
+          .add('Analytics collection enabled - ensure proper consent');
       status['gdprCompliant'] = false;
     }
 
@@ -371,16 +379,17 @@ class ComplianceManager {
 
     // Check for long retention periods
     for (final policy in privacySettings.retentionPolicies) {
-      if (policy.retentionPeriod > 2555) { // 7 years
+      if (policy.retentionPeriod > 2555) {
+        // 7 years
         status['recommendations'].add(
-          '${policy.dataType}: Consider reducing retention period for GDPR compliance'
-        );
+            '${policy.dataType}: Consider reducing retention period for GDPR compliance');
       }
     }
 
     // Check audit log
     if (_auditLog.isEmpty) {
-      status['recommendations'].add('Enable audit logging for better compliance tracking');
+      status['recommendations']
+          .add('Enable audit logging for better compliance tracking');
     }
 
     return status;
@@ -405,11 +414,15 @@ class ComplianceManager {
       action: 'data_deletion',
       userId: 'system',
       resource: 'user_data',
-      details: {'deletedUserId': anonymizedUserId, 'deletedEntries': deletedCount},
+      details: {
+        'deletedUserId': anonymizedUserId,
+        'deletedEntries': deletedCount
+      },
       confidential: true,
     );
 
-    logger.info('User data deletion completed: $deletedCount entries removed for user $anonymizedUserId');
+    logger.info(
+        'User data deletion completed: $deletedCount entries removed for user $anonymizedUserId');
     return deletedCount;
   }
 
@@ -424,7 +437,8 @@ class ComplianceManager {
       'auditStats': auditStats,
       'privacySettings': privacySettings.toJson(),
       'dataRetention': {
-        'policies': privacySettings.retentionPolicies.map((p) => p.toJson()).toList(),
+        'policies':
+            privacySettings.retentionPolicies.map((p) => p.toJson()).toList(),
         'lastCleanup': await _getLastCleanupDate(),
       },
     };
@@ -460,7 +474,7 @@ class ComplianceManager {
 
     // Anonymize emails
     if (sanitized.containsKey('email')) {
-      sanitized['email'] = _anonymizeEmail(sanitized['email']);
+      sanitized['email'] = _anonymizeEmail(sanitized['email'] as String);
     }
 
     return sanitized;
@@ -489,7 +503,7 @@ class ComplianceManager {
 
       final entries = data['entries'] as List<dynamic>;
       for (final entryJson in entries) {
-        final entry = AuditEntry.fromJson(entryJson);
+        final entry = AuditEntry.fromJson(entryJson as Map<String, dynamic>);
         _auditLog.add(entry);
       }
 
@@ -513,13 +527,13 @@ class ComplianceManager {
         final content = await auditFile.readAsString();
         final data = json.decode(content) as Map<String, dynamic>;
         final entries = data['entries'] as List<dynamic>;
-        existingEntries.addAll(entries.map((e) => AuditEntry.fromJson(e)));
+        existingEntries.addAll(
+            entries.map((e) => AuditEntry.fromJson(e as Map<String, dynamic>)));
       }
 
       existingEntries.add(entry);
 
       // Apply retention policies
-      final now = DateTime.now();
       final policy = privacySettings.getPolicy('audit_logs');
       if (policy != null) {
         existingEntries.removeWhere((e) => policy.isExpired(e.timestamp));
@@ -571,7 +585,8 @@ class ComplianceManager {
 
       case 'archive':
         // Move to archive (not implemented yet)
-        logger.debug('Archive deletion method not yet implemented for ${policy.dataType}');
+        logger.debug(
+            'Archive deletion method not yet implemented for ${policy.dataType}');
         break;
     }
 
@@ -605,8 +620,12 @@ class ComplianceManager {
       'uniqueUsers': users.length,
       'uniqueResources': resources.length,
       'dateRange': {
-        'oldest': _auditLog.isNotEmpty ? _auditLog.first.timestamp.toIso8601String() : null,
-        'newest': _auditLog.isNotEmpty ? _auditLog.last.timestamp.toIso8601String() : null,
+        'oldest': _auditLog.isNotEmpty
+            ? _auditLog.first.timestamp.toIso8601String()
+            : null,
+        'newest': _auditLog.isNotEmpty
+            ? _auditLog.last.timestamp.toIso8601String()
+            : null,
       },
     };
   }
@@ -652,11 +671,13 @@ class ComplianceIntegration {
         'provider': provider,
         'qualityScore': qualityScore,
         'textLength': sourceText.length,
-        'hasPersonalData': _containsPersonalData(sourceText) || _containsPersonalData(translatedText),
+        'hasPersonalData': _containsPersonalData(sourceText) ||
+            _containsPersonalData(translatedText),
       },
       ipAddress: ipAddress,
       sessionId: sessionId,
-      confidential: _containsPersonalData(sourceText) || _containsPersonalData(translatedText),
+      confidential: _containsPersonalData(sourceText) ||
+          _containsPersonalData(translatedText),
     );
   }
 
@@ -726,6 +747,7 @@ class ComplianceIntegration {
       RegExp(r'confidential\.'),
     ];
 
-    return sensitivePatterns.any((pattern) => pattern.hasMatch(filePath.toLowerCase()));
+    return sensitivePatterns
+        .any((pattern) => pattern.hasMatch(filePath.toLowerCase()));
   }
 }

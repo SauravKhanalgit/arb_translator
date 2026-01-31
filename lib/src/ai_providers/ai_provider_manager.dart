@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/ai_providers/openai_provider.dart';
 import 'package:arb_translator_gen_z/src/ai_providers/deepl_provider.dart';
@@ -64,7 +63,8 @@ class AIProviderManager {
     }
 
     if (_providers.isEmpty) {
-      logger.warning('No AI providers configured. Quality scoring and advanced features will be limited.');
+      logger.warning(
+          'No AI providers configured. Quality scoring and advanced features will be limited.');
     } else {
       logger.info('Initialized ${_providers.length} AI providers');
     }
@@ -80,7 +80,8 @@ class AIProviderManager {
     Map<String, String>? surroundingContext,
     String? keyName,
   }) async {
-    final provider = _selectProvider(preferredProvider ?? config.aiModelConfig.preferredProvider);
+    final provider = _selectProvider(
+        preferredProvider ?? config.aiModelConfig.preferredProvider);
 
     if (provider == null) {
       throw AIProviderException(
@@ -108,7 +109,8 @@ class AIProviderManager {
         // Auto-correct if quality is below threshold and auto-correction is enabled
         if (qualityScore < config.aiModelConfig.qualityThreshold &&
             config.aiModelConfig.enableAutoCorrection) {
-          logger.info('Low quality score ($qualityScore), attempting auto-correction');
+          logger.info(
+              'Low quality score ($qualityScore), attempting auto-correction');
 
           final correction = await provider.suggestCorrection(
             text,
@@ -156,7 +158,8 @@ class AIProviderManager {
   /// Selects the best provider based on availability, cost, and preferences.
   AIProvider? _selectProvider(TranslationProvider preferred) {
     // First, try to find the preferred provider
-    final preferredProvider = _providers.where((p) => p.provider == preferred).firstOrNull;
+    final preferredProvider =
+        _providers.where((p) => p.provider == preferred).firstOrNull;
     if (preferredProvider != null) {
       return preferredProvider;
     }
@@ -177,7 +180,9 @@ class AIProviderManager {
     ];
 
     for (final providerType in priorityOrder) {
-      final provider = availableProviders.where((p) => p.provider == providerType).firstOrNull;
+      final provider = availableProviders
+          .where((p) => p.provider == providerType)
+          .firstOrNull;
       if (provider != null) {
         return provider;
       }

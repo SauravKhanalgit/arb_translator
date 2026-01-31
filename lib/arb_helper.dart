@@ -261,7 +261,9 @@ class ArbHelper {
       }
 
       // Get keys after current key
-      for (var i = keyIndex + 1; i < min(allKeys.length, keyIndex + contextRadius + 1); i++) {
+      for (var i = keyIndex + 1;
+          i < min(allKeys.length, keyIndex + contextRadius + 1);
+          i++) {
         final contextKey = allKeys[i];
         final contextValue = arbContent[contextKey]?.toString() ?? '';
         if (contextValue.isNotEmpty && contextValue.length < 100) {
@@ -309,7 +311,8 @@ class ArbHelper {
         final basePlaceholders = _extractPlaceholders(baseValue);
         final filePlaceholders = _extractPlaceholders(fileValue);
 
-        if (!const SetEquality().equals(basePlaceholders, filePlaceholders)) {
+        if (!const SetEquality<String>()
+            .equals(basePlaceholders, filePlaceholders)) {
           placeholderIssues.add(key);
         }
       }
@@ -350,7 +353,8 @@ class ArbHelper {
       final similarTranslations = <String, String>{};
       for (final targetKey in targetKeys) {
         final similarity = _calculateSimilarity(missingKey, targetKey);
-        if (similarity > 0.6) { // 60% similarity threshold
+        if (similarity > 0.6) {
+          // 60% similarity threshold
           final translation = targetFile[targetKey]?.toString() ?? '';
           if (translation.isNotEmpty) {
             similarTranslations[targetKey] = translation;
@@ -360,9 +364,11 @@ class ArbHelper {
 
       if (similarTranslations.isNotEmpty) {
         // Use the most similar translation as suggestion
-        final bestMatch = similarTranslations.entries
-            .reduce((a, b) => _calculateSimilarity(missingKey, a.key) >
-                             _calculateSimilarity(missingKey, b.key) ? a : b);
+        final bestMatch = similarTranslations.entries.reduce((a, b) =>
+            _calculateSimilarity(missingKey, a.key) >
+                    _calculateSimilarity(missingKey, b.key)
+                ? a
+                : b);
         suggestions[missingKey] = bestMatch.value;
       }
     }

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
-import 'package:crypto/crypto.dart';
 
 /// Configuration settings for the ARB translator.
 ///
@@ -102,11 +101,16 @@ class TranslatorConfig {
           azureTranslatorRegion: aiConfig['azureTranslatorRegion'] as String?,
           awsTranslateAccessKey: aiConfig['awsTranslateAccessKey'] as String?,
           awsTranslateSecretKey: aiConfig['awsTranslateSecretKey'] as String?,
-          awsTranslateRegion: aiConfig['awsTranslateRegion'] as String? ?? 'us-east-1',
-          preferredProvider: _parseTranslationProvider(aiConfig['preferredProvider'] as String? ?? 'google'),
-          qualityThreshold: (aiConfig['qualityThreshold'] as num?)?.toDouble() ?? 0.8,
-          enableQualityScoring: aiConfig['enableQualityScoring'] as bool? ?? true,
-          enableAutoCorrection: aiConfig['enableAutoCorrection'] as bool? ?? false,
+          awsTranslateRegion:
+              aiConfig['awsTranslateRegion'] as String? ?? 'us-east-1',
+          preferredProvider: _parseTranslationProvider(
+              aiConfig['preferredProvider'] as String? ?? 'google'),
+          qualityThreshold:
+              (aiConfig['qualityThreshold'] as num?)?.toDouble() ?? 0.8,
+          enableQualityScoring:
+              aiConfig['enableQualityScoring'] as bool? ?? true,
+          enableAutoCorrection:
+              aiConfig['enableAutoCorrection'] as bool? ?? false,
           maxTokensPerRequest: aiConfig['maxTokensPerRequest'] as int? ?? 4000,
         ),
       );
@@ -339,9 +343,12 @@ class AIModelConfig {
       openaiApiKey: openaiApiKey ?? this.openaiApiKey,
       deeplApiKey: deeplApiKey ?? this.deeplApiKey,
       azureTranslatorKey: azureTranslatorKey ?? this.azureTranslatorKey,
-      azureTranslatorRegion: azureTranslatorRegion ?? this.azureTranslatorRegion,
-      awsTranslateAccessKey: awsTranslateAccessKey ?? this.awsTranslateAccessKey,
-      awsTranslateSecretKey: awsTranslateSecretKey ?? this.awsTranslateSecretKey,
+      azureTranslatorRegion:
+          azureTranslatorRegion ?? this.azureTranslatorRegion,
+      awsTranslateAccessKey:
+          awsTranslateAccessKey ?? this.awsTranslateAccessKey,
+      awsTranslateSecretKey:
+          awsTranslateSecretKey ?? this.awsTranslateSecretKey,
       awsTranslateRegion: awsTranslateRegion ?? this.awsTranslateRegion,
       preferredProvider: preferredProvider ?? this.preferredProvider,
       qualityThreshold: qualityThreshold ?? this.qualityThreshold,

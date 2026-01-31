@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
-import 'package:collection/collection.dart';
 
 /// Represents a term in the terminology database.
 class TermEntry {
@@ -53,7 +52,8 @@ class TermEntry {
   String? getTranslation(String languageCode) => translations[languageCode];
 
   /// Check if term has translation for language.
-  bool hasTranslation(String languageCode) => translations.containsKey(languageCode);
+  bool hasTranslation(String languageCode) =>
+      translations.containsKey(languageCode);
 
   /// Create a copy with updated translations.
   TermEntry withTranslation(String languageCode, String translation) {
@@ -76,39 +76,41 @@ class TermEntry {
 
   /// Convert to JSON for storage.
   Map<String, dynamic> toJson() => {
-    'sourceTerm': sourceTerm,
-    'translations': translations,
-    'category': category,
-    'description': description,
-    'priority': priority.name,
-    'created': created,
-    'lastModified': lastModified?.toIso8601String(),
-    'usageCount': usageCount,
-    'tags': tags,
-    'context': context,
-  };
+        'sourceTerm': sourceTerm,
+        'translations': translations,
+        'category': category,
+        'description': description,
+        'priority': priority.name,
+        'created': created,
+        'lastModified': lastModified?.toIso8601String(),
+        'usageCount': usageCount,
+        'tags': tags,
+        'context': context,
+      };
 
   /// Create from JSON.
   factory TermEntry.fromJson(Map<String, dynamic> json) => TermEntry(
-    sourceTerm: json['sourceTerm'],
-    translations: Map<String, String>.from(json['translations'] ?? {}),
-    category: json['category'] ?? 'general',
-    description: json['description'],
-    priority: TermPriority.values.firstWhere(
-      (p) => p.name == json['priority'],
-      orElse: () => TermPriority.medium,
-    ),
-    created: json['created'] ?? false,
-    lastModified: json['lastModified'] != null
-        ? DateTime.parse(json['lastModified'])
-        : null,
-    usageCount: json['usageCount'] ?? 0,
-    tags: List<String>.from(json['tags'] ?? []),
-    context: json['context'],
-  );
+        sourceTerm: json['sourceTerm'] as String,
+        translations: Map<String, String>.from(
+            json['translations'] as Map<dynamic, dynamic>? ?? {}),
+        category: json['category'] as String? ?? 'general',
+        description: json['description'] as String?,
+        priority: TermPriority.values.firstWhere(
+          (p) => p.name == json['priority'],
+          orElse: () => TermPriority.medium,
+        ),
+        created: json['created'] as bool? ?? false,
+        lastModified: json['lastModified'] != null
+            ? DateTime.parse(json['lastModified'] as String)
+            : null,
+        usageCount: json['usageCount'] as int? ?? 0,
+        tags: List<String>.from(json['tags'] as Iterable? ?? []),
+        context: json['context'] as String?,
+      );
 
   @override
-  String toString() => 'TermEntry($sourceTerm: ${translations.length} translations)';
+  String toString() =>
+      'TermEntry($sourceTerm: ${translations.length} translations)';
 }
 
 /// Priority levels for terminology terms.
@@ -213,7 +215,8 @@ class TerminologyManager {
     // Update category index
     _categoryIndex.putIfAbsent(term.category, () => []).add(term.sourceTerm);
 
-    logger.debug('Added term: ${term.sourceTerm} (${term.translations.length} translations)');
+    logger.debug(
+        'Added term: ${term.sourceTerm} (${term.translations.length} translations)');
   }
 
   /// Remove a term from the database.
@@ -238,7 +241,8 @@ class TerminologyManager {
   }
 
   /// Lookup a term in the database.
-  TerminologyLookupResult lookupTerm(String text, String? sourceLang, String? targetLang) {
+  TerminologyLookupResult lookupTerm(
+      String text, String? sourceLang, String? targetLang) {
     final normalizedText = text.toLowerCase().trim();
 
     // Exact match
@@ -426,13 +430,14 @@ class TerminologyManager {
 
       final termsData = data['terms'] as List<dynamic>;
       for (final termJson in termsData) {
-        final term = TermEntry.fromJson(termJson);
+        final term = TermEntry.fromJson(termJson as Map<String, dynamic>);
         addTerm(term);
       }
 
       logger.info('Loaded ${_terms.length} terms from disk');
     } catch (e) {
-      logger.warning('Failed to load terminology from disk, starting fresh: $e');
+      logger
+          .warning('Failed to load terminology from disk, starting fresh: $e');
     }
   }
 
@@ -445,7 +450,9 @@ class TerminologyManager {
 
     // Add new entries
     for (final translation in term.translations.values) {
-      _reverseIndex.putIfAbsent(translation.toLowerCase(), () => {})[term.sourceTerm] = term.sourceTerm;
+      _reverseIndex.putIfAbsent(
+              translation.toLowerCase(), () => {})[term.sourceTerm] =
+          term.sourceTerm;
     }
   }
 
@@ -455,7 +462,7 @@ class TerminologyManager {
     final terms = data['terms'] as List<dynamic>;
 
     for (final termJson in terms) {
-      final term = TermEntry.fromJson(termJson);
+      final term = TermEntry.fromJson(termJson as Map<String, dynamic>);
       addTerm(term);
     }
   }
@@ -524,7 +531,8 @@ class TerminologyManager {
           final lang = line.substring(0, colonIndex).trim();
           final translation = line.substring(colonIndex + 1).trim();
           if (translation.startsWith('"') && translation.endsWith('"')) {
-            currentTerm[lang] = translation.substring(1, translation.length - 1);
+            currentTerm[lang] =
+                translation.substring(1, translation.length - 1);
           } else {
             currentTerm[lang] = translation;
           }
@@ -701,9 +709,8 @@ class TerminologyIntegration {
           final approvedTranslation = result.term!.getTranslation(locale);
           if (approvedTranslation != null && approvedTranslation != text) {
             issues.add(
-              '$locale:${contentEntry.key}: Translation "$text" does not match '
-              'approved terminology "$approvedTranslation"'
-            );
+                '$locale:${contentEntry.key}: Translation "$text" does not match '
+                'approved terminology "$approvedTranslation"');
           }
         }
       }
@@ -733,11 +740,13 @@ class TerminologyIntegration {
 
         for (final word in words) {
           final normalized = word.toLowerCase();
-          termCandidates.putIfAbsent(normalized, () => {
-            'term': word,
-            'occurrences': <String, int>{},
-            'locales': <String>{},
-          });
+          termCandidates.putIfAbsent(
+              normalized,
+              () => {
+                    'term': word,
+                    'occurrences': <String, int>{},
+                    'locales': <String>{},
+                  });
 
           termCandidates[normalized]!['occurrences'][locale] =
               (termCandidates[normalized]!['occurrences'][locale] ?? 0) + 1;
@@ -761,8 +770,10 @@ class TerminologyIntegration {
 
         // Add translations from different locales
         for (final locale in locales) {
-          if (locale != 'en') { // Assume 'en' is source
-            translations[locale] = term; // Placeholder - would need proper extraction
+          if (locale != 'en') {
+            // Assume 'en' is source
+            translations[locale] =
+                term; // Placeholder - would need proper extraction
           }
         }
 

@@ -88,36 +88,38 @@ class TranslationEntry {
 
   /// Converts to JSON for storage.
   Map<String, dynamic> toJson() => {
-    'sourceText': sourceText,
-    'translatedText': translatedText,
-    'sourceLang': sourceLang,
-    'targetLang': targetLang,
-    'provider': provider,
-    'qualityScore': qualityScore,
-    'timestamp': timestamp.toIso8601String(),
-    'context': context,
-    'projectId': projectId,
-    'userId': userId,
-    'tags': tags,
-  };
+        'sourceText': sourceText,
+        'translatedText': translatedText,
+        'sourceLang': sourceLang,
+        'targetLang': targetLang,
+        'provider': provider,
+        'qualityScore': qualityScore,
+        'timestamp': timestamp.toIso8601String(),
+        'context': context,
+        'projectId': projectId,
+        'userId': userId,
+        'tags': tags,
+      };
 
   /// Creates from JSON.
-  factory TranslationEntry.fromJson(Map<String, dynamic> json) => TranslationEntry(
-    sourceText: json['sourceText'],
-    translatedText: json['translatedText'],
-    sourceLang: json['sourceLang'],
-    targetLang: json['targetLang'],
-    provider: json['provider'],
-    qualityScore: json['qualityScore']?.toDouble() ?? 0.8,
-    timestamp: DateTime.parse(json['timestamp']),
-    context: json['context'] as Map<String, dynamic>?,
-    projectId: json['projectId'],
-    userId: json['userId'],
-    tags: List<String>.from(json['tags'] ?? []),
-  );
+  factory TranslationEntry.fromJson(Map<String, dynamic> json) =>
+      TranslationEntry(
+        sourceText: json['sourceText'] as String,
+        translatedText: json['translatedText'] as String,
+        sourceLang: json['sourceLang'] as String,
+        targetLang: json['targetLang'] as String,
+        provider: json['provider'] as String,
+        qualityScore: (json['qualityScore'] as num?)?.toDouble() ?? 0.8,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        context: json['context'] as Map<String, dynamic>?,
+        projectId: json['projectId'] as String?,
+        userId: json['userId'] as String?,
+        tags: List<String>.from(json['tags'] as Iterable? ?? []),
+      );
 
   @override
-  String toString() => 'TranslationEntry($sourceLang → $targetLang: ${sourceText.length} chars)';
+  String toString() =>
+      'TranslationEntry($sourceLang → $targetLang: ${sourceText.length} chars)';
 }
 
 /// Fuzzy matching result.
@@ -230,7 +232,8 @@ class TranslationMemory {
     _updateIndexes(entry);
 
     _stats['totalEntries'] = _entries.length;
-    logger.debug('Added translation to memory: ${entry.sourceLang} → ${entry.targetLang}');
+    logger.debug(
+        'Added translation to memory: ${entry.sourceLang} → ${entry.targetLang}');
   }
 
   /// Finds exact match for the given text and language pair.
@@ -272,9 +275,11 @@ class TranslationMemory {
         continue;
       }
 
-      final similarity = _calculateSimilarity(sourceText, entry.sourceText, context, entry.context);
+      final similarity = _calculateSimilarity(
+          sourceText, entry.sourceText, context, entry.context);
       if (similarity >= minSimilarity) {
-        final matchType = _determineMatchType(sourceText, entry.sourceText, context, entry.context);
+        final matchType = _determineMatchType(
+            sourceText, entry.sourceText, context, entry.context);
 
         matches.add(FuzzyMatch(
           entry: entry,
@@ -292,7 +297,8 @@ class TranslationMemory {
 
     if (results.isNotEmpty) {
       _stats['fuzzyMatches'] = (_stats['fuzzyMatches'] as int) + 1;
-      logger.debug('Found ${results.length} fuzzy matches (best: ${(results.first.similarityScore * 100).round()}%)');
+      logger.debug(
+          'Found ${results.length} fuzzy matches (best: ${(results.first.similarityScore * 100).round()}%)');
     }
 
     return results;
@@ -306,7 +312,8 @@ class TranslationMemory {
     Map<String, dynamic>? context,
   }) {
     // Try exact match first
-    final exactMatch = findExactMatch(sourceText, sourceLang, targetLang, context: context);
+    final exactMatch =
+        findExactMatch(sourceText, sourceLang, targetLang, context: context);
     if (exactMatch != null) {
       return exactMatch.translatedText;
     }
@@ -387,7 +394,8 @@ class TranslationMemory {
 
       await file.writeAsString(json.encode(data));
       _stats['autoSaves'] = (_stats['autoSaves'] as int) + 1;
-      logger.debug('Translation memory saved to disk (${_entries.length} entries)');
+      logger.debug(
+          'Translation memory saved to disk (${_entries.length} entries)');
     } catch (e) {
       logger.error('Failed to save translation memory', e);
     }
@@ -407,7 +415,8 @@ class TranslationMemory {
 
       final entries = data['entries'] as List<dynamic>;
       for (final entryJson in entries) {
-        final entry = TranslationEntry.fromJson(entryJson);
+        final entry =
+            TranslationEntry.fromJson(entryJson as Map<String, dynamic>);
         _entries[entry.compositeKey] = entry;
         _updateIndexes(entry);
       }
@@ -421,7 +430,8 @@ class TranslationMemory {
       _stats['totalEntries'] = _entries.length;
       logger.info('Loaded ${_entries.length} translation entries from disk');
     } catch (e) {
-      logger.warning('Failed to load translation memory from disk, starting fresh: $e');
+      logger.warning(
+          'Failed to load translation memory from disk, starting fresh: $e');
     }
   }
 
@@ -479,8 +489,10 @@ class TranslationMemory {
     if (a.isEmpty || b.isEmpty) return 0.0;
 
     // Simple word-based similarity
-    final aWords = a.toLowerCase().split(RegExp(r'[^\w]+')).where((w) => w.isNotEmpty);
-    final bWords = b.toLowerCase().split(RegExp(r'[^\w]+')).where((w) => w.isNotEmpty);
+    final aWords =
+        a.toLowerCase().split(RegExp(r'[^\w]+')).where((w) => w.isNotEmpty);
+    final bWords =
+        b.toLowerCase().split(RegExp(r'[^\w]+')).where((w) => w.isNotEmpty);
 
     final aSet = aWords.toSet();
     final bSet = bWords.toSet();
@@ -492,7 +504,8 @@ class TranslationMemory {
   }
 
   /// Calculates context similarity.
-  double _contextSimilarity(Map<String, dynamic>? context1, Map<String, dynamic>? context2) {
+  double _contextSimilarity(
+      Map<String, dynamic>? context1, Map<String, dynamic>? context2) {
     if (context1 == null && context2 == null) return 1.0;
     if (context1 == null || context2 == null) return 0.5;
 
@@ -528,7 +541,8 @@ class TranslationMemory {
     // Check for term-based similarity
     final terms1 = _extractTerms(text1).toSet();
     final terms2 = _extractTerms(text2).toSet();
-    final termOverlap = terms1.intersection(terms2).length / max(terms1.length, terms2.length);
+    final termOverlap =
+        terms1.intersection(terms2).length / max(terms1.length, terms2.length);
 
     if (termOverlap > 0.7) {
       return MatchType.term;
@@ -540,7 +554,8 @@ class TranslationMemory {
   /// Extracts meaningful terms from text for indexing.
   List<String> _extractTerms(String text) {
     // Simple term extraction (can be enhanced with NLP)
-    return text.toLowerCase()
+    return text
+        .toLowerCase()
         .split(RegExp(r'[^\w]+'))
         .where((word) => word.length > 2)
         .toList();

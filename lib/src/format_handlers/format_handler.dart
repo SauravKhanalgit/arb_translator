@@ -16,7 +16,9 @@ abstract class FormatHandler {
   Future<Map<String, dynamic>> readFile(String filePath);
 
   /// Writes translations to a file in the appropriate format.
-  Future<void> writeFile(String filePath, Map<String, dynamic> translations, {
+  Future<void> writeFile(
+    String filePath,
+    Map<String, dynamic> translations, {
     bool prettyPrint = true,
     bool createBackup = false,
   });
@@ -80,7 +82,9 @@ class ArbHandler extends FormatHandler {
   }
 
   @override
-  Future<void> writeFile(String filePath, Map<String, dynamic> translations, {
+  Future<void> writeFile(
+    String filePath,
+    Map<String, dynamic> translations, {
     bool prettyPrint = true,
     bool createBackup = false,
   }) async {
@@ -125,7 +129,9 @@ class JsonHandler extends FormatHandler {
   }
 
   @override
-  Future<void> writeFile(String filePath, Map<String, dynamic> translations, {
+  Future<void> writeFile(
+    String filePath,
+    Map<String, dynamic> translations, {
     bool prettyPrint = true,
     bool createBackup = false,
   }) async {
@@ -136,9 +142,7 @@ class JsonHandler extends FormatHandler {
       await file.copy(backupPath);
     }
 
-    final encoder = prettyPrint
-        ? JsonEncoder.withIndent('  ')
-        : JsonEncoder();
+    final encoder = prettyPrint ? JsonEncoder.withIndent('  ') : JsonEncoder();
 
     await file.writeAsString(encoder.convert(translations));
   }
@@ -225,7 +229,9 @@ class YamlHandler extends FormatHandler {
   }
 
   @override
-  Future<void> writeFile(String filePath, Map<String, dynamic> translations, {
+  Future<void> writeFile(
+    String filePath,
+    Map<String, dynamic> translations, {
     bool prettyPrint = true,
     bool createBackup = false,
   }) async {
@@ -305,8 +311,10 @@ class CsvHandler extends FormatHandler {
 
     // Find key and value columns
     final keyIndex = headers.indexOf('key');
-    final valueIndex = headers.indexOf('value') != -1 ? headers.indexOf('value') :
-                      headers.indexOf(headers.firstWhere((h) => h != 'key', orElse: () => ''));
+    final valueIndex = headers.indexOf('value') != -1
+        ? headers.indexOf('value')
+        : headers
+            .indexOf(headers.firstWhere((h) => h != 'key', orElse: () => ''));
 
     if (keyIndex == -1) {
       throw FormatException('CSV must have a "key" column');
@@ -331,7 +339,9 @@ class CsvHandler extends FormatHandler {
   }
 
   @override
-  Future<void> writeFile(String filePath, Map<String, dynamic> translations, {
+  Future<void> writeFile(
+    String filePath,
+    Map<String, dynamic> translations, {
     bool prettyPrint = true,
     bool createBackup = false,
   }) async {
@@ -420,90 +430,91 @@ class CsvHandler extends FormatHandler {
   }
 }
 
-  Future<Map<String, dynamic>> readArbFile(String path) async {
-    final file = File(path);
-    if (!await file.exists()) {
-      throw ArbFileNotFoundException(path);
-    }
-
-    try {
-      final content = await file.readAsString();
-      final data = json.decode(content) as Map<String, dynamic>;
-      return data;
-    } catch (e) {
-      throw ArbFileFormatException(path, 'Invalid JSON format: $e');
-    }
+Future<Map<String, dynamic>> readArbFile(String path) async {
+  final file = File(path);
+  if (!await file.exists()) {
+    throw ArbFileNotFoundException(path);
   }
 
-  Future<void> writeArbFile(String path, Map<String, dynamic> content, {
-    bool prettyPrint = true,
-    bool createBackup = false,
-  }) async {
-    final file = File(path);
+  try {
+    final content = await file.readAsString();
+    final data = json.decode(content) as Map<String, dynamic>;
+    return data;
+  } catch (e) {
+    throw ArbFileFormatException(path, 'Invalid JSON format: $e');
+  }
+}
 
-    if (createBackup && await file.exists()) {
-      final backupPath = '$path.backup';
-      await file.copy(backupPath);
-    }
+Future<void> writeArbFile(
+  String path,
+  Map<String, dynamic> content, {
+  bool prettyPrint = true,
+  bool createBackup = false,
+}) async {
+  final file = File(path);
 
-    final encoder = prettyPrint
-        ? JsonEncoder.withIndent('  ')
-        : JsonEncoder();
-
-    await file.writeAsString(encoder.convert(content));
+  if (createBackup && await file.exists()) {
+    final backupPath = '$path.backup';
+    await file.copy(backupPath);
   }
 
-  List<String> validateArbContent(Map<String, dynamic> content) {
-    final issues = <String>[];
+  final encoder = prettyPrint ? JsonEncoder.withIndent('  ') : JsonEncoder();
 
-    if (content.isEmpty) {
-      issues.add('ARB file is empty');
-      return issues;
-    }
+  await file.writeAsString(encoder.convert(content));
+}
 
-    // Check for @@locale
-    if (!content.containsKey('@@locale')) {
-      issues.add('Missing @@locale metadata');
-    } else if (content['@@locale'] == null || (content['@@locale'] as String).isEmpty) {
-      issues.add('@@locale is empty');
-    }
+List<String> validateArbContent(Map<String, dynamic> content) {
+  final issues = <String>[];
 
-    // Check for translations
-    final translations = getTranslations(content);
-    if (translations.isEmpty) {
-      issues.add('No translatable content found');
-    }
-
-    // Validate key formats and values
-    content.forEach((key, value) {
-      if (key.startsWith('@@')) {
-        // Metadata keys
-        if (value == null) {
-          issues.add('Metadata key "$key" has null value');
-        }
-      } else if (!key.startsWith('@')) {
-        // Translation keys
-        if (value == null) {
-          issues.add('Translation key "$key" has null value');
-        } else if (value is! String) {
-          issues.add('Translation key "$key" must have string value');
-        } else if ((value as String).isEmpty) {
-          issues.add('Translation key "$key" has empty value');
-        }
-      }
-    });
-
+  if (content.isEmpty) {
+    issues.add('ARB file is empty');
     return issues;
   }
 
-  Map<String, String> getTranslations(Map<String, dynamic> content) {
-    final translations = <String, String>{};
-
-    content.forEach((key, value) {
-      if (!key.startsWith('@') && value is String) {
-        translations[key] = value;
-      }
-    });
-
-    return translations;
+  // Check for @@locale
+  if (!content.containsKey('@@locale')) {
+    issues.add('Missing @@locale metadata');
+  } else if (content['@@locale'] == null ||
+      (content['@@locale'] as String).isEmpty) {
+    issues.add('@@locale is empty');
   }
+
+  // Check for translations
+  final translations = getTranslations(content);
+  if (translations.isEmpty) {
+    issues.add('No translatable content found');
+  }
+
+  // Validate key formats and values
+  content.forEach((key, value) {
+    if (key.startsWith('@@')) {
+      // Metadata keys
+      if (value == null) {
+        issues.add('Metadata key "$key" has null value');
+      }
+    } else if (!key.startsWith('@')) {
+      // Translation keys
+      if (value == null) {
+        issues.add('Translation key "$key" has null value');
+      } else if (value is! String) {
+        issues.add('Translation key "$key" must have string value');
+      } else if (value.isEmpty) {
+        issues.add('Translation key "$key" has empty value');
+      }
+    }
+  });
+
+  return issues;
+}
+
+Map<String, String> getTranslations(Map<String, dynamic> content) {
+  final translations = <String, String>{};
+
+  content.forEach((key, value) {
+    if (!key.startsWith('@') && value is String) {
+      translations[key] = value;
+    }
+  });
+
+  return translations;
+}

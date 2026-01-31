@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:arb_translator_gen_z/arb_helper.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
 import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
-import 'package:arb_translator_gen_z/src/exceptions/translation_exceptions.dart';
 import 'package:arb_translator_gen_z/src/format_handlers/format_handler.dart';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 import 'package:arb_translator_gen_z/translator.dart';
@@ -88,7 +87,8 @@ class LocalizationTranslator {
         final text = entry.value.toString();
         if (text.trim().isNotEmpty) {
           // Extract context for this translation
-          final context = ArbHelper.extractTranslationContext(sourceContent, entry.key);
+          final context =
+              ArbHelper.extractTranslationContext(sourceContent, entry.key);
           final description = context['description'] as String?;
           final surrounding = context['surrounding'] as Map<String, String>?;
 

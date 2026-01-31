@@ -258,7 +258,8 @@ class CollaborationManager {
     // Auto-resolve if all reviewers approved or if there's a rejection
     if (decision == ReviewDecision.reject) {
       review.status = ReviewStatus.rejected;
-    } else if (review.decisions.every((d) => d.decision == ReviewDecision.approve)) {
+    } else if (review.decisions
+        .every((d) => d.decision == ReviewDecision.approve)) {
       review.status = ReviewStatus.approved;
     }
 
@@ -401,7 +402,7 @@ class CollaborationManager {
       onDone: () {
         _connectedClients.remove(clientId);
       },
-      onError: (error) {
+      onError: (dynamic error) {
         _logger.error('WebSocket error', error);
         _connectedClients.remove(clientId);
       },
@@ -411,47 +412,50 @@ class CollaborationManager {
   }
 
   /// Handle WebSocket message.
-  void _handleWebSocketMessage(String clientId, WebSocket socket, Map<String, dynamic> data) {
+  void _handleWebSocketMessage(
+      String clientId, WebSocket socket, Map<String, dynamic> data) {
     final type = data['type'] as String?;
     final payload = data['payload'] as Map<String, dynamic>? ?? {};
 
     switch (type) {
       case 'join_project':
         joinProject(
-          projectId: payload['projectId'],
-          userId: payload['userId'],
-          userName: payload['userName'],
-          permissions: List<String>.from(payload['permissions'] ?? []),
+          projectId: payload['projectId'] as String,
+          userId: payload['userId'] as String,
+          userName: payload['userName'] as String,
+          permissions:
+              List<String>.from(payload['permissions'] as Iterable? ?? []),
         );
         break;
 
       case 'leave_project':
-        leaveProject(payload['userId']);
+        leaveProject(payload['userId'] as String);
         break;
 
       case 'update_translation':
         updateTranslation(
-          projectId: payload['projectId'],
-          userId: payload['userId'],
-          language: payload['language'],
-          key: payload['key'],
-          newValue: payload['value'],
-          description: payload['description'],
+          projectId: payload['projectId'] as String,
+          userId: payload['userId'] as String,
+          language: payload['language'] as String,
+          key: payload['key'] as String,
+          newValue: payload['value'] as String,
+          description: payload['description'] as String?,
         );
         break;
 
       case 'request_review':
         requestReview(
-          projectId: payload['projectId'],
-          userId: payload['userId'],
-          language: payload['language'],
-          key: payload['key'],
-          comment: payload['comment'],
+          projectId: payload['projectId'] as String,
+          userId: payload['userId'] as String,
+          language: payload['language'] as String,
+          key: payload['key'] as String,
+          comment: payload['comment'] as String?,
         );
         break;
 
       case 'ping':
-        socket.add(json.encode({'type': 'pong', 'timestamp': DateTime.now().toIso8601String()}));
+        socket.add(json.encode(
+            {'type': 'pong', 'timestamp': DateTime.now().toIso8601String()}));
         break;
     }
   }
@@ -470,7 +474,8 @@ class CollaborationManager {
   }
 
   /// Broadcast message to clients in a specific project.
-  void _broadcastToProject(String projectId, String type, Map<String, dynamic> payload) {
+  void _broadcastToProject(
+      String projectId, String type, Map<String, dynamic> payload) {
     final message = json.encode({
       'type': type,
       'payload': payload,
@@ -486,7 +491,8 @@ class CollaborationManager {
   }
 
   /// Detect conflicts between translations.
-  _TranslationConflict _detectConflict(_TranslationEntry existing, String newValue, String userId) {
+  _TranslationConflict _detectConflict(
+      _TranslationEntry existing, String newValue, String userId) {
     return _TranslationConflict(
       key: existing.key,
       language: existing.language,
@@ -500,7 +506,8 @@ class CollaborationManager {
   }
 
   /// Resolve conflicts based on strategy.
-  Future<_ConflictResolution> _resolveConflict(_TranslationConflict conflict, String userId) async {
+  Future<_ConflictResolution> _resolveConflict(
+      _TranslationConflict conflict, String userId) async {
     switch (conflictResolutionStrategy) {
       case ConflictResolutionStrategy.lastWriterWins:
         return _ConflictResolution(
@@ -517,10 +524,12 @@ class CollaborationManager {
 
       case ConflictResolutionStrategy.versionControl:
         // Check if the change is substantial
-        final similarity = _calculateSimilarity(conflict.existingValue, conflict.newValue);
+        final similarity =
+            _calculateSimilarity(conflict.existingValue, conflict.newValue);
         return _ConflictResolution(
           accepted: similarity < 0.8, // Accept if changes are significant
-          reason: 'Version control: similarity ${similarity.toStringAsFixed(2)}',
+          reason:
+              'Version control: similarity ${similarity.toStringAsFixed(2)}',
         );
 
       case ConflictResolutionStrategy.userPriority:
@@ -551,7 +560,8 @@ class CollaborationManager {
 
   /// Calculate Levenshtein distance.
   int _levenshteinDistance(String a, String b) {
-    final matrix = List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
+    final matrix =
+        List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
 
     for (var i = 0; i <= a.length; i++) {
       matrix[i][0] = i;
@@ -625,13 +635,15 @@ enum ReviewDecision { approve, reject, requestChanges }
 
 /// Result of conflict resolution.
 class ConflictResolutionResult {
-  ConflictResolutionResult._(this.success, this.conflict, this.resolution, this.update, this.error);
+  ConflictResolutionResult._(
+      this.success, this.conflict, this.resolution, this.update, this.error);
 
   factory ConflictResolutionResult.success(_TranslationUpdate update) {
     return ConflictResolutionResult._(true, null, null, update, null);
   }
 
-  factory ConflictResolutionResult.conflict(_TranslationConflict conflict, _ConflictResolution resolution) {
+  factory ConflictResolutionResult.conflict(
+      _TranslationConflict conflict, _ConflictResolution resolution) {
     return ConflictResolutionResult._(false, conflict, resolution, null, null);
   }
 
@@ -748,15 +760,18 @@ class _CollaborativeProject {
       'settings': settings,
       'createdAt': createdAt.toIso8601String(),
       'userCount': _users.length,
-      'translationCount': _translations.values.fold(0, (sum, lang) => sum + lang.length),
+      'translationCount':
+          _translations.values.fold(0, (sum, lang) => sum + lang.length),
       'reviewCount': _reviews.length,
       'activeLocks': _locks.length,
     };
   }
 
   Map<String, dynamic> getStatistics() {
-    final totalTranslations = _translations.values.fold(0, (sum, lang) => sum + lang.length);
-    final completedReviews = _reviews.where((r) => r.status != ReviewStatus.pending).length;
+    final totalTranslations =
+        _translations.values.fold(0, (sum, lang) => sum + lang.length);
+    final completedReviews =
+        _reviews.where((r) => r.status != ReviewStatus.pending).length;
 
     return {
       'totalUsers': _users.length,
@@ -765,8 +780,10 @@ class _CollaborativeProject {
       'totalReviews': _reviews.length,
       'completedReviews': completedReviews,
       'activeLocks': _locks.length,
-      'completionRate': _reviews.isEmpty ? 0.0 : completedReviews / _reviews.length,
-      'lastActivity': _updates.isEmpty ? null : _updates.last.timestamp.toIso8601String(),
+      'completionRate':
+          _reviews.isEmpty ? 0.0 : completedReviews / _reviews.length,
+      'lastActivity':
+          _updates.isEmpty ? null : _updates.last.timestamp.toIso8601String(),
     };
   }
 

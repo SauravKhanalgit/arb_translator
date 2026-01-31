@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
-import 'package:intl/intl.dart';
 
 /// Represents a complex string with placeholders and special patterns.
 class ComplexString {
@@ -12,7 +10,8 @@ class ComplexString {
     final segments = <String>[];
 
     // Extract placeholders like {name}, $variable, %s
-    final placeholderRegex = RegExp(r'\{([^}]+)\}|\$([a-zA-Z_][a-zA-Z0-9_]*)|%\w');
+    final placeholderRegex =
+        RegExp(r'\{([^}]+)\}|\$([a-zA-Z_][a-zA-Z0-9_]*)|%\w');
     final placeholdersFound = placeholderRegex.allMatches(text);
 
     for (final match in placeholdersFound) {
@@ -23,14 +22,16 @@ class ComplexString {
     }
 
     // Extract date patterns
-    final dateRegex = RegExp(r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b');
+    final dateRegex =
+        RegExp(r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b');
     final datesFound = dateRegex.allMatches(text);
     for (final match in datesFound) {
       datePatterns.add(match.group(0)!);
     }
 
     // Extract number patterns (currency, percentages, etc.)
-    final numberRegex = RegExp(r'\b\d+(?:,\d{3})*(?:\.\d{2})?\s*(?:\$|€|£|¥|%|USD|EUR|GBP|JPY)\b');
+    final numberRegex = RegExp(
+        r'\b\d+(?:,\d{3})*(?:\.\d{2})?\s*(?:\$|€|£|¥|%|USD|EUR|GBP|JPY)\b');
     final numbersFound = numberRegex.allMatches(text);
     for (final match in numbersFound) {
       numberPatterns.add(match.group(0)!);
@@ -38,7 +39,6 @@ class ComplexString {
 
     // Split text into segments
     var remainingText = text;
-    var position = 0;
 
     for (final placeholder in placeholders) {
       final index = remainingText.indexOf(placeholder);
@@ -51,7 +51,6 @@ class ComplexString {
         segments.add(placeholder);
         // Update remaining text
         remainingText = remainingText.substring(index + placeholder.length);
-        position += index + placeholder.length;
       }
     }
 
@@ -100,7 +99,9 @@ class ComplexString {
 
   /// Gets translatable segments (excluding placeholders).
   List<String> get translatableSegments {
-    return segments.where((segment) => !placeholders.contains(segment)).toList();
+    return segments
+        .where((segment) => !placeholders.contains(segment))
+        .toList();
   }
 
   /// Reconstructs text with translated segments.
@@ -173,21 +174,26 @@ class ComplexStringProcessor {
 
   /// Processes a translated string (restores complex elements).
   String postprocess(String translatedText, ProcessingResult processingResult) {
-    if (!processingResult.needsSpecialHandling || processingResult.complexString == null) {
+    if (!processingResult.needsSpecialHandling ||
+        processingResult.complexString == null) {
       return translatedText;
     }
 
     var result = translatedText;
 
     // Restore dates (keep original format)
-    for (var i = 0; i < processingResult.complexString!.datePatterns.length; i++) {
+    for (var i = 0;
+        i < processingResult.complexString!.datePatterns.length;
+        i++) {
       final placeholder = '{{DATE_$i}}';
       final originalDate = processingResult.complexString!.datePatterns[i];
       result = result.replaceFirst(placeholder, originalDate);
     }
 
     // Restore numbers/currency (keep original format)
-    for (var i = 0; i < processingResult.complexString!.numberPatterns.length; i++) {
+    for (var i = 0;
+        i < processingResult.complexString!.numberPatterns.length;
+        i++) {
       final placeholder = '{{NUMBER_$i}}';
       final originalNumber = processingResult.complexString!.numberPatterns[i];
       result = result.replaceFirst(placeholder, originalNumber);
@@ -205,7 +211,8 @@ class ComplexStringProcessor {
   ) {
     // Detect pluralization patterns
     final pluralPatterns = _detectPluralPatterns(sourceText, sourceLang);
-    final translatedPatterns = _detectPluralPatterns(translatedText, targetLang);
+    final translatedPatterns =
+        _detectPluralPatterns(translatedText, targetLang);
 
     if (pluralPatterns.isEmpty && translatedPatterns.isEmpty) {
       return PluralizationResult(
@@ -220,7 +227,8 @@ class ComplexStringProcessor {
     final issues = <String>[];
 
     if (pluralPatterns.length != translatedPatterns.length) {
-      issues.add('Plural form count mismatch: ${pluralPatterns.length} vs ${translatedPatterns.length}');
+      issues.add(
+          'Plural form count mismatch: ${pluralPatterns.length} vs ${translatedPatterns.length}');
     }
 
     // Check for ICU message format patterns
@@ -255,14 +263,17 @@ class ComplexStringProcessor {
 
       // English patterns
       if (language.startsWith('en')) ...[
-        RegExp(r'\b(?:is|are|was|were|has|have|does|do)\b', caseSensitive: false),
+        RegExp(r'\b(?:is|are|was|were|has|have|does|do)\b',
+            caseSensitive: false),
         RegExp(r'\b(?:this|these|that|those)\b', caseSensitive: false),
         RegExp(r'\b(?:one|two|few|many|other)\b', caseSensitive: false),
       ],
 
       // General patterns
-      RegExp(r'\b\d+\s+(?:items?|things?|people?|users?)\b', caseSensitive: false),
-      RegExp(r'\b(?:no|one|two|three|several|many|few)\s+\w+\b', caseSensitive: false),
+      RegExp(r'\b\d+\s+(?:items?|things?|people?|users?)\b',
+          caseSensitive: false),
+      RegExp(r'\b(?:no|one|two|three|several|many|few)\s+\w+\b',
+          caseSensitive: false),
     ];
 
     for (final indicator in pluralIndicators) {
