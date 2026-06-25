@@ -32,7 +32,7 @@ Future<void> errorHandlingExample() async {
   final translator = LocalizationTranslator(config);
 
   try {
-    await translator.generateArbForLanguage('nonexistent.arb', 'fr');
+    await translator.generateForLanguage('nonexistent.arb', 'fr');
   } on ArbFileNotFoundException catch (e) {
     print('File not found: ${e.filePath}');
     // Handle missing source file
@@ -120,7 +120,7 @@ Future<void> translationServiceExample() async {
       print('  ${entry.key}: ${entry.value}');
     }
   } finally {
-    translationService.dispose();
+    await translationService.dispose();
   }
 }
 
@@ -242,7 +242,7 @@ Future<void> cicdIntegrationExample() async {
 
     logger.info('Generating translations for: ${requiredLanguages.join(', ')}');
 
-    final translator = ArbTranslator(ciConfig);
+    final translator = LocalizationTranslator(ciConfig);
     var allSuccessful = true;
 
     for (final sourceFile in sourceFiles) {

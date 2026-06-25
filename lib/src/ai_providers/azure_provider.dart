@@ -43,7 +43,7 @@ class AzureProvider extends AIProvider {
         description != null ? '$text\n\nContext: $description' : text;
 
     final body = <Map<String, dynamic>>[
-      {'text': enhancedText}
+      {'text': enhancedText},
     ];
 
     final response = await makeRequest(url, body);
@@ -55,7 +55,7 @@ class AzureProvider extends AIProvider {
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
     logger.debug(
-        'Azure translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
+        'Azure translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang',);
 
     return TranslationResult(
       text: translatedText,
@@ -80,7 +80,7 @@ class AzureProvider extends AIProvider {
           'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=$sourceLang&to=$targetLang&includeAlignment=true';
 
       final body = <Map<String, dynamic>>[
-        {'text': sourceText}
+        {'text': sourceText},
       ];
 
       final response = await makeRequest(url, body);
@@ -130,13 +130,13 @@ class AzureProvider extends AIProvider {
 
   /// Simple string similarity calculation.
   double _calculateSimilarity(String a, String b) {
-    if (a == b) return 1.0;
-    if (a.isEmpty || b.isEmpty) return 0.0;
+    if (a == b) return 1;
+    if (a.isEmpty || b.isEmpty) return 0;
 
     final aWords = a.toLowerCase().split(RegExp(r'\s+'));
     final bWords = b.toLowerCase().split(RegExp(r'\s+'));
 
-    final commonWords = aWords.where((word) => bWords.contains(word)).length;
+    final commonWords = aWords.where(bWords.contains).length;
     final totalWords = (aWords.length + bWords.length) / 2;
 
     return totalWords > 0 ? commonWords / totalWords : 0.0;

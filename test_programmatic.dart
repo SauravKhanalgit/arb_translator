@@ -12,10 +12,10 @@ void main() async {
     logger.initialize(config.logLevel);
 
     // Create translator
-    final translator = ArbTranslator(config);
+    final translator = LocalizationTranslator(config);
 
     // Test translation to Spanish
-    final outputPath = await translator.generateArbForLanguage(
+    final outputPath = await translator.generateForLanguage(
       'lib/l10n/app_en.arb',
       'es',
     );

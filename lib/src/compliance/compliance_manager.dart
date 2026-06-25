@@ -45,19 +45,6 @@ class AuditEntry {
   /// Whether this entry contains confidential information.
   final bool confidential;
 
-  /// Convert to JSON for storage.
-  Map<String, dynamic> toJson() => {
-        'timestamp': timestamp.toIso8601String(),
-        'action': action,
-        'userId': userId,
-        'resource': resource,
-        'details': details,
-        'ipAddress': _anonymizeIp(ipAddress),
-        'userAgent': userAgent,
-        'sessionId': sessionId,
-        'confidential': confidential,
-      };
-
   /// Create from JSON.
   factory AuditEntry.fromJson(Map<String, dynamic> json) => AuditEntry(
         timestamp: DateTime.parse(json['timestamp'] as String),
@@ -70,6 +57,19 @@ class AuditEntry {
         sessionId: json['sessionId'] as String?,
         confidential: json['confidential'] as bool? ?? false,
       );
+
+  /// Convert to JSON for storage.
+  Map<String, dynamic> toJson() => {
+        'timestamp': timestamp.toIso8601String(),
+        'action': action,
+        'userId': userId,
+        'resource': resource,
+        'details': details,
+        'ipAddress': AuditEntry._anonymizeIp(ipAddress),
+        'userAgent': userAgent,
+        'sessionId': sessionId,
+        'confidential': confidential,
+      };
 
   /// Anonymize IP address for GDPR compliance.
   static String _anonymizeIp(String ip) {
@@ -119,6 +119,17 @@ class RetentionPolicy {
   /// Compliance frameworks this applies to (GDPR, CCPA, etc.).
   final List<String> complianceFrameworks;
 
+  /// Create from JSON.
+  factory RetentionPolicy.fromJson(Map<String, dynamic> json) =>
+      RetentionPolicy(
+        dataType: json['dataType'] as String,
+        retentionPeriod: json['retentionPeriod'] as int,
+        deletionMethod: json['deletionMethod'] as String,
+        autoDelete: json['autoDelete'] as bool? ?? true,
+        complianceFrameworks:
+            List<String>.from(json['complianceFrameworks'] as Iterable? ?? []),
+      );
+
   /// Check if data is expired based on this policy.
   bool isExpired(DateTime dataTimestamp) {
     final expiryDate = dataTimestamp.add(Duration(days: retentionPeriod));
@@ -133,17 +144,6 @@ class RetentionPolicy {
         'autoDelete': autoDelete,
         'complianceFrameworks': complianceFrameworks,
       };
-
-  /// Create from JSON.
-  factory RetentionPolicy.fromJson(Map<String, dynamic> json) =>
-      RetentionPolicy(
-        dataType: json['dataType'] as String,
-        retentionPeriod: json['retentionPeriod'] as int,
-        deletionMethod: json['deletionMethod'] as String,
-        autoDelete: json['autoDelete'] as bool? ?? true,
-        complianceFrameworks:
-            List<String>.from(json['complianceFrameworks'] as Iterable? ?? []),
-      );
 }
 
 /// Privacy settings for GDPR compliance.
@@ -154,8 +154,48 @@ class PrivacySettings {
     this.analyticsEnabled = false,
     this.errorReportingEnabled = false,
     this.personalizationEnabled = false,
-    this.retentionPolicies = const [],
+    this.retentionPolicies = const <RetentionPolicy>[],
   });
+
+  /// Create from JSON.
+  factory PrivacySettings.fromJson(Map<String, dynamic> json) =>
+      PrivacySettings(
+        dataCollectionEnabled: json['dataCollectionEnabled'] as bool? ?? false,
+        analyticsEnabled: json['analyticsEnabled'] as bool? ?? false,
+        errorReportingEnabled: json['errorReportingEnabled'] as bool? ?? false,
+        personalizationEnabled:
+            json['personalizationEnabled'] as bool? ?? false,
+        retentionPolicies: (json['retentionPolicies'] as List<dynamic>?)
+                ?.map(
+                  (p) => RetentionPolicy.fromJson(p as Map<String, dynamic>),
+                )
+                .toList() ??
+            [],
+      );
+
+  /// Default GDPR-compliant settings.
+  factory PrivacySettings.gdprCompliant() => const PrivacySettings(
+        retentionPolicies: [
+          RetentionPolicy(
+            dataType: 'audit_logs',
+            retentionPeriod: 2555, // 7 years for GDPR
+            deletionMethod: 'delete',
+            complianceFrameworks: ['GDPR'],
+          ),
+          RetentionPolicy(
+            dataType: 'translation_memory',
+            retentionPeriod: 1825, // 5 years
+            deletionMethod: 'anonymize',
+            complianceFrameworks: ['GDPR'],
+          ),
+          RetentionPolicy(
+            dataType: 'user_sessions',
+            retentionPeriod: 30, // 30 days
+            deletionMethod: 'delete',
+            complianceFrameworks: ['GDPR'],
+          ),
+        ],
+      );
 
   /// Whether data collection is enabled.
   final bool dataCollectionEnabled;
@@ -190,49 +230,6 @@ class PrivacySettings {
         'personalizationEnabled': personalizationEnabled,
         'retentionPolicies': retentionPolicies.map((p) => p.toJson()).toList(),
       };
-
-  /// Create from JSON.
-  factory PrivacySettings.fromJson(Map<String, dynamic> json) =>
-      PrivacySettings(
-        dataCollectionEnabled: json['dataCollectionEnabled'] as bool? ?? false,
-        analyticsEnabled: json['analyticsEnabled'] as bool? ?? false,
-        errorReportingEnabled: json['errorReportingEnabled'] as bool? ?? false,
-        personalizationEnabled:
-            json['personalizationEnabled'] as bool? ?? false,
-        retentionPolicies: (json['retentionPolicies'] as List<dynamic>?)
-                ?.map(
-                    (p) => RetentionPolicy.fromJson(p as Map<String, dynamic>))
-                .toList() ??
-            [],
-      );
-
-  /// Default GDPR-compliant settings.
-  factory PrivacySettings.gdprCompliant() => const PrivacySettings(
-        dataCollectionEnabled: false,
-        analyticsEnabled: false,
-        errorReportingEnabled: false,
-        personalizationEnabled: false,
-        retentionPolicies: [
-          RetentionPolicy(
-            dataType: 'audit_logs',
-            retentionPeriod: 2555, // 7 years for GDPR
-            deletionMethod: 'delete',
-            complianceFrameworks: ['GDPR'],
-          ),
-          RetentionPolicy(
-            dataType: 'translation_memory',
-            retentionPeriod: 1825, // 5 years
-            deletionMethod: 'anonymize',
-            complianceFrameworks: ['GDPR'],
-          ),
-          RetentionPolicy(
-            dataType: 'user_sessions',
-            retentionPeriod: 30, // 30 days
-            deletionMethod: 'delete',
-            complianceFrameworks: ['GDPR'],
-          ),
-        ],
-      );
 }
 
 /// Comprehensive compliance manager for GDPR, audit logging, and data retention.

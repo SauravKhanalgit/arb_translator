@@ -38,7 +38,7 @@ class OpenAIProvider extends AIProvider {
     final prompt = _buildTranslationPrompt(text, sourceLang, targetLang,
         description: description,
         surroundingContext: surroundingContext,
-        keyName: keyName);
+        keyName: keyName,);
     final body = {
       'model': 'gpt-3.5-turbo',
       'messages': [
@@ -66,7 +66,7 @@ class OpenAIProvider extends AIProvider {
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
     logger.debug(
-        'OpenAI translation completed: ${translatedText.length} chars, $tokensUsed tokens');
+        'OpenAI translation completed: ${translatedText.length} chars, $tokensUsed tokens',);
 
     return TranslationResult(
       text: translatedText,
@@ -111,7 +111,7 @@ Return only a number between 0.0 and 1.0, no explanation.
     final body = {
       'model': 'gpt-3.5-turbo',
       'messages': [
-        {'role': 'user', 'content': prompt}
+        {'role': 'user', 'content': prompt},
       ],
       'max_tokens': 10,
       'temperature': 0.1,
@@ -155,7 +155,7 @@ Provide only the corrected translation, no explanations or additional text.
     final body = {
       'model': 'gpt-3.5-turbo',
       'messages': [
-        {'role': 'user', 'content': prompt}
+        {'role': 'user', 'content': prompt},
       ],
       'max_tokens': config.maxTokensPerRequest,
       'temperature': 0.3,
@@ -196,7 +196,7 @@ Provide only the corrected translation, no explanations or additional text.
     final buffer = StringBuffer();
 
     buffer.writeln(
-        'Translate the following text from $sourceLangName ($sourceLang) to $targetLangName ($targetLang):');
+        'Translate the following text from $sourceLangName ($sourceLang) to $targetLangName ($targetLang):',);
     buffer.writeln();
     buffer.writeln('Text: "$text"');
 
@@ -221,13 +221,13 @@ Provide only the corrected translation, no explanations or additional text.
     buffer
         .writeln('- Preserve the exact meaning and tone of the original text');
     buffer.writeln(
-        '- Consider the context and description for accurate translation');
+        '- Consider the context and description for accurate translation',);
     buffer.writeln(
-        '- Keep technical terms and proper nouns as they are (unless they have standard translations)');
+        '- Keep technical terms and proper nouns as they are (unless they have standard translations)',);
     buffer.writeln(
-        '- Maintain any placeholders, variables, or special formatting (e.g., {name}, \${variable})');
+        r'- Maintain any placeholders, variables, or special formatting (e.g., {name}, ${variable})',);
     buffer.writeln(
-        '- Ensure the translation is natural and fluent in $targetLangName');
+        '- Ensure the translation is natural and fluent in $targetLangName',);
     buffer.writeln('- Do not add extra explanations or comments');
     buffer.writeln();
     buffer.writeln('Translation:');

@@ -256,7 +256,7 @@ class ArbHelper {
         final contextKey = allKeys[i];
         final contextValue = arbContent[contextKey]?.toString() ?? '';
         if (contextValue.isNotEmpty && contextValue.length < 100) {
-          surroundingContext['prev_${contextKey}'] = contextValue;
+          surroundingContext['prev_$contextKey'] = contextValue;
         }
       }
 
@@ -267,7 +267,7 @@ class ArbHelper {
         final contextKey = allKeys[i];
         final contextValue = arbContent[contextKey]?.toString() ?? '';
         if (contextValue.isNotEmpty && contextValue.length < 100) {
-          surroundingContext['next_${contextKey}'] = contextValue;
+          surroundingContext['next_$contextKey'] = contextValue;
         }
       }
 
@@ -364,11 +364,12 @@ class ArbHelper {
 
       if (similarTranslations.isNotEmpty) {
         // Use the most similar translation as suggestion
-        final bestMatch = similarTranslations.entries.reduce((a, b) =>
-            _calculateSimilarity(missingKey, a.key) >
-                    _calculateSimilarity(missingKey, b.key)
-                ? a
-                : b);
+        final bestMatch = similarTranslations.entries.reduce(
+          (a, b) => _calculateSimilarity(missingKey, a.key) >
+                  _calculateSimilarity(missingKey, b.key)
+              ? a
+              : b,
+        );
         suggestions[missingKey] = bestMatch.value;
       }
     }
@@ -392,16 +393,16 @@ class ArbHelper {
   }
 
   static double _calculateSimilarity(String a, String b) {
-    if (a == b) return 1.0;
-    if (a.isEmpty || b.isEmpty) return 0.0;
+    if (a == b) return 1;
+    if (a.isEmpty || b.isEmpty) return 0;
 
     final aWords = a.toLowerCase().split(RegExp(r'[_\s]+'));
     final bWords = b.toLowerCase().split(RegExp(r'[_\s]+'));
 
-    final commonWords = aWords.where((word) => bWords.contains(word)).length;
+    final commonWords = aWords.where(bWords.contains).length;
     final totalWords = (aWords.length + bWords.length) / 2;
 
-    return totalWords > 0 ? commonWords / totalWords : 0.0;
+    return totalWords > 0 ? commonWords / totalWords : 0;
   }
 }
 
@@ -425,7 +426,7 @@ class ArbAnalysisResult {
 
   /// Gets overall project completeness percentage.
   double get overallCompleteness {
-    if (fileAnalysis.isEmpty) return 100.0;
+    if (fileAnalysis.isEmpty) return 100;
 
     final totalCompleteness = fileAnalysis.values
         .map((analysis) => analysis.completenessPercentage)

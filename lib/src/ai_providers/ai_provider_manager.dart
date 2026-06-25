@@ -1,8 +1,8 @@
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
-import 'package:arb_translator_gen_z/src/ai_providers/openai_provider.dart';
-import 'package:arb_translator_gen_z/src/ai_providers/deepl_provider.dart';
-import 'package:arb_translator_gen_z/src/ai_providers/azure_provider.dart';
 import 'package:arb_translator_gen_z/src/ai_providers/aws_provider.dart';
+import 'package:arb_translator_gen_z/src/ai_providers/azure_provider.dart';
+import 'package:arb_translator_gen_z/src/ai_providers/deepl_provider.dart';
+import 'package:arb_translator_gen_z/src/ai_providers/openai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
@@ -64,7 +64,7 @@ class AIProviderManager {
 
     if (_providers.isEmpty) {
       logger.warning(
-          'No AI providers configured. Quality scoring and advanced features will be limited.');
+          'No AI providers configured. Quality scoring and advanced features will be limited.',);
     } else {
       logger.info('Initialized ${_providers.length} AI providers');
     }
@@ -81,7 +81,7 @@ class AIProviderManager {
     String? keyName,
   }) async {
     final provider = _selectProvider(
-        preferredProvider ?? config.aiModelConfig.preferredProvider);
+        preferredProvider ?? config.aiModelConfig.preferredProvider,);
 
     if (provider == null) {
       throw AIProviderException(
@@ -110,7 +110,7 @@ class AIProviderManager {
         if (qualityScore < config.aiModelConfig.qualityThreshold &&
             config.aiModelConfig.enableAutoCorrection) {
           logger.info(
-              'Low quality score ($qualityScore), attempting auto-correction');
+              'Low quality score ($qualityScore), attempting auto-correction',);
 
           final correction = await provider.suggestCorrection(
             text,

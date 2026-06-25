@@ -39,7 +39,7 @@ Future<void> basicTranslationExample() async {
     final translator = LocalizationTranslator(config);
 
     // Translate to French
-    final outputPath = await translator.generateArbForLanguage(
+    final outputPath = await translator.generateForLanguage(
       'lib/l10n/app_en.arb',
       'fr',
     );
@@ -69,7 +69,7 @@ Future<void> batchTranslationExample() async {
     logger.initialize(customConfig.logLevel);
 
     // Create translator with custom config
-    final translator = ArbTranslator(customConfig);
+    final translator = LocalizationTranslator(customConfig);
 
     // Translate to multiple popular languages
     final targetLanguages = ['fr', 'es', 'de', 'it', 'pt'];

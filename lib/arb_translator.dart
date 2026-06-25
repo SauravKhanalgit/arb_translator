@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:arb_translator_gen_z/arb_helper.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
@@ -6,17 +7,37 @@ import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
 import 'package:arb_translator_gen_z/src/format_handlers/format_handler.dart';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 import 'package:arb_translator_gen_z/translator.dart';
+import 'package:path/path.dart' as p;
 
-/// Enhanced localization file translator with comprehensive error handling and configuration.
+/// Backward-compatible alias for [LocalizationTranslator].
+typedef ArbTranslator = LocalizationTranslator;
+
+/// Enhanced localization file translator with parallel processing and comprehensive error handling.
 ///
-/// This class provides robust translation capabilities for multiple localization file formats
-/// (ARB, JSON, YAML, CSV, PO) with advanced features like retry logic, rate limiting,
-/// context-aware translation, and validation.
+/// Supports multiple localization file formats (ARB, JSON, YAML) with concurrent
+/// string translation, context-aware AI providers, and built-in retry logic.
+///
+/// ## Quick Start
+///
+/// ```dart
+/// final translator = LocalizationTranslator(TranslatorConfig());
+/// try {
+///   // Translate to French
+///   await translator.generateForLanguage('lib/l10n/app_en.arb', 'fr');
+///
+///   // Translate to multiple languages concurrently
+///   await translator.generateMultipleLanguages(
+///     'lib/l10n/app_en.arb',
+///     ['es', 'de', 'it', 'pt'],
+///   );
+/// } finally {
+///   translator.dispose();
+/// }
+/// ```
 class LocalizationTranslator {
   /// Creates a [LocalizationTranslator] with the given [config].
   LocalizationTranslator(this._config)
       : _translationService = TranslationService(_config) {
-    // Initialize format handlers
     FormatHandlerRegistry.initializeDefaults();
   }
 
@@ -24,38 +45,44 @@ class LocalizationTranslator {
   final TranslationService _translationService;
   final TranslatorLogger _logger = TranslatorLogger();
 
-  /// Generates a translated localization file for the specified [targetLang] based on the
-  /// [sourcePath] file.
+  /// Generates a translated localization file for the specified [targetLang].
   ///
-  /// Supports multiple formats (ARB, JSON, YAML, CSV) and uses context-aware translation
-  /// with AI providers for high-quality results.
+  /// Strings are translated in parallel batches (controlled by
+  /// [TranslatorConfig.maxConcurrentTranslations]) for best performance.
+  /// Passing an [outputDir] writes the file to a custom directory instead of
+  /// placing it next to the source file.
   ///
-  /// Example:
   /// ```dart
-  /// final translator = LocalizationTranslator(config);
-  /// await translator.generateForLanguage('lib/l10n/app_en.arb', 'fr');
-  /// // Generates lib/l10n/app_fr.arb
+  /// final path = await translator.generateForLanguage(
+  ///   'lib/l10n/app_en.arb',
+  ///   'fr',
+  ///   outputDir: 'build/l10n',
+  /// );
   /// ```
   ///
-  /// [sourcePath]: The path to the source localization file.
-  /// [targetLang]: The ISO-639 language code for the target translation.
-  /// [overwrite]: Whether to overwrite existing files (default: true).
+  /// Returns the path of the generated file.
   ///
-  /// Returns a [Future<String>] with the path to the generated file.
+  /// Throws [ArbFileNotFoundException] if [sourcePath] does not exist.
+  /// Throws [ArbValidationException] if the source has no translatable entries.
+  /// Throws [ArbFileWriteException] if writing fails or overwrite is disabled.
   Future<String> generateForLanguage(
     String sourcePath,
     String targetLang, {
     bool overwrite = true,
+    String? outputDir,
   }) async {
     _logger.info('Starting translation: $sourcePath -> $targetLang');
 
     try {
-      // Read and validate source ARB file
       final sourceContent = await ArbHelper.readArbFile(sourcePath);
       _logger.debug('Source file loaded with ${sourceContent.length} entries');
 
-      // Check if target file exists and handle overwrite
-      final targetPath = _generateTargetPath(sourcePath, targetLang);
+      final targetPath = _generateTargetPath(
+        sourcePath,
+        targetLang,
+        outputDir: outputDir,
+      );
+
       if (!overwrite && await File(targetPath).exists()) {
         _logger.warning(
           'Target file exists and overwrite is disabled: $targetPath',
@@ -66,7 +93,6 @@ class LocalizationTranslator {
         );
       }
 
-      // Extract translations (non-metadata entries)
       final translations = ArbHelper.getTranslations(sourceContent);
       final metadata = ArbHelper.getMetadata(sourceContent);
 
@@ -80,40 +106,15 @@ class LocalizationTranslator {
 
       _logger.info('Found ${translations.length} entries to translate');
 
-      // Perform context-aware translations with batch processing
-      final translatedResults = <String, String>{};
+      // Parallel batch processing — up to maxConcurrentTranslations at once.
+      final translatedResults = await _translateConcurrently(
+        sourceContent,
+        translations,
+        targetLang,
+      );
 
-      for (final entry in translations.entries) {
-        final text = entry.value.toString();
-        if (text.trim().isNotEmpty) {
-          // Extract context for this translation
-          final context =
-              ArbHelper.extractTranslationContext(sourceContent, entry.key);
-          final description = context['description'] as String?;
-          final surrounding = context['surrounding'] as Map<String, String>?;
-
-          try {
-            final translatedText = await _translationService.translateText(
-              text,
-              targetLang,
-              sourceLang: sourceContent['@@locale'] as String?,
-              description: description,
-              surroundingContext: surrounding,
-              keyName: entry.key,
-            );
-            translatedResults[entry.key] = translatedText;
-          } catch (e) {
-            _logger.warning('Failed to translate ${entry.key}: $e');
-            // Keep original text on failure
-            translatedResults[entry.key] = text;
-          }
-        }
-      }
-
-      // Build target content
       final targetContent = <String, dynamic>{};
 
-      // Add metadata with updated locale
       for (final entry in metadata.entries) {
         if (entry.key == '@@locale') {
           targetContent[entry.key] = targetLang;
@@ -122,17 +123,11 @@ class LocalizationTranslator {
         }
       }
 
-      // Add translations
       for (final entry in translations.entries) {
-        final translatedText = translatedResults[entry.key];
-        targetContent[entry.key] = translatedText ?? entry.value;
-
-        if (translatedText != null) {
-          _logger.debug('Translated ${entry.key}: "$translatedText"');
-        }
+        targetContent[entry.key] =
+            translatedResults[entry.key] ?? entry.value;
       }
 
-      // Write target ARB file
       await ArbHelper.writeArbFile(
         targetPath,
         targetContent,
@@ -140,7 +135,6 @@ class LocalizationTranslator {
         createBackup: _config.backupOriginal,
       );
 
-      // Validate output if configured
       if (_config.validateOutput) {
         await _validateGeneratedFile(targetPath);
       }
@@ -153,20 +147,26 @@ class LocalizationTranslator {
     }
   }
 
-  /// Generates ARB files for multiple target languages.
+  /// Generates ARB files for multiple target languages in concurrent batches.
   ///
-  /// Processes translations concurrently with proper throttling to respect
-  /// API rate limits.
+  /// Languages are processed in groups of three to balance throughput and
+  /// memory usage. Use [outputDir] to write all files to a custom directory.
   ///
-  /// [sourcePath]: The path to the source ARB file.
-  /// [targetLanguages]: List of target language codes.
-  /// [overwrite]: Whether to overwrite existing files.
+  /// ```dart
+  /// final results = await translator.generateMultipleLanguages(
+  ///   'lib/l10n/app_en.arb',
+  ///   ['fr', 'es', 'de'],
+  ///   outputDir: 'build/l10n',
+  /// );
+  /// ```
   ///
-  /// Returns a [Future<Map<String, String>>] mapping language codes to generated file paths.
+  /// Returns a map of language code → generated file path. Languages that
+  /// fail are omitted from the result map.
   Future<Map<String, String>> generateMultipleLanguages(
     String sourcePath,
     List<String> targetLanguages, {
     bool overwrite = true,
+    String? outputDir,
   }) async {
     _logger.info(
       'Starting batch translation for ${targetLanguages.length} languages',
@@ -175,7 +175,6 @@ class LocalizationTranslator {
     final results = <String, String>{};
     final errors = <String, String>{};
 
-    // Process languages in smaller batches to manage memory and API load
     const batchSize = 3;
     for (var i = 0; i < targetLanguages.length; i += batchSize) {
       final batch = targetLanguages.skip(i).take(batchSize).toList();
@@ -186,12 +185,13 @@ class LocalizationTranslator {
             sourcePath,
             lang,
             overwrite: overwrite,
+            outputDir: outputDir,
           );
           return MapEntry(lang, outputPath);
         } catch (e) {
           _logger.error('Failed to generate ARB for $lang', e);
           errors[lang] = e.toString();
-          return MapEntry(lang, ''); // Empty path indicates failure
+          return MapEntry(lang, '');
         }
       });
 
@@ -209,7 +209,8 @@ class LocalizationTranslator {
     }
 
     _logger.success(
-      'Batch translation completed: ${results.length} successful, ${errors.length} failed',
+      'Batch translation completed: ${results.length} successful, '
+      '${errors.length} failed',
     );
     return results;
   }
@@ -219,22 +220,87 @@ class LocalizationTranslator {
     _translationService.dispose();
   }
 
-  String _generateTargetPath(String sourcePath, String targetLang) {
-    // Handle different ARB filename patterns
+  // ── Internal helpers ──────────────────────────────────────────────────────
+
+  /// Translates all [translations] in parallel batches of
+  /// [TranslatorConfig.maxConcurrentTranslations].
+  Future<Map<String, String>> _translateConcurrently(
+    Map<String, dynamic> sourceContent,
+    Map<String, dynamic> translations,
+    String targetLang,
+  ) async {
+    final results = <String, String>{};
+    final batchSize = max(1, _config.maxConcurrentTranslations);
+    final entries = translations.entries.toList();
+    var processed = 0;
+
+    for (var i = 0; i < entries.length; i += batchSize) {
+      final batch = entries.skip(i).take(batchSize).toList();
+
+      final futures = batch.map((entry) async {
+        final text = entry.value.toString();
+        if (text.trim().isEmpty) return MapEntry(entry.key, text);
+
+        final context =
+            ArbHelper.extractTranslationContext(sourceContent, entry.key);
+        final description = context['description'] as String?;
+        final surrounding = context['surrounding'] as Map<String, String>?;
+
+        try {
+          final translated = await _translationService.translateText(
+            text,
+            targetLang,
+            sourceLang: sourceContent['@@locale'] as String?,
+            description: description,
+            surroundingContext: surrounding,
+            keyName: entry.key,
+          );
+          return MapEntry(entry.key, translated);
+        } catch (e) {
+          _logger.warning('Failed to translate "${entry.key}": $e');
+          return MapEntry(entry.key, text);
+        }
+      });
+
+      final batchResults = await Future.wait(futures);
+      results.addEntries(batchResults);
+      processed += batch.length;
+
+      _logger.progress(
+        '$processed/${entries.length} strings translated to $targetLang',
+      );
+    }
+
+    return results;
+  }
+
+  String _generateTargetPath(
+    String sourcePath,
+    String targetLang, {
+    String? outputDir,
+  }) {
     final patterns = [
-      RegExp(r'_[a-z]{2}(-[A-Z]{2})?\.arb$'), // app_en.arb or app_en-US.arb
-      RegExp(r'\.[a-z]{2}(-[A-Z]{2})?\.arb$'), // app.en.arb or app.en-US.arb
-      RegExp(r'\.arb$'), // app.arb (fallback)
+      RegExp(r'_[a-z]{2}(-[A-Z]{2})?\.arb$'),
+      RegExp(r'\.[a-z]{2}(-[A-Z]{2})?\.arb$'),
     ];
 
+    var targetFileName = sourcePath;
     for (final pattern in patterns) {
       if (pattern.hasMatch(sourcePath)) {
-        return sourcePath.replaceFirst(pattern, '_$targetLang.arb');
+        targetFileName = sourcePath.replaceFirst(pattern, '_$targetLang.arb');
+        break;
       }
     }
 
-    // Fallback: insert language before extension
-    return sourcePath.replaceFirst('.arb', '_$targetLang.arb');
+    if (targetFileName == sourcePath) {
+      targetFileName = sourcePath.replaceFirst('.arb', '_$targetLang.arb');
+    }
+
+    if (outputDir != null) {
+      return p.join(outputDir, p.basename(targetFileName));
+    }
+
+    return targetFileName;
   }
 
   Future<void> _validateGeneratedFile(String filePath) async {
@@ -255,7 +321,8 @@ class LocalizationTranslator {
   }
 }
 
-// Legacy function for backward compatibility
+// ── Deprecated top-level function ─────────────────────────────────────────
+
 /// @deprecated Use [LocalizationTranslator.generateForLanguage] instead.
 @Deprecated('Use LocalizationTranslator.generateForLanguage instead')
 Future<void> generateArbForLanguage(

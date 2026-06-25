@@ -14,6 +14,16 @@ class AnalyticsEvent {
     this.metadata,
   });
 
+  /// Create from JSON.
+  factory AnalyticsEvent.fromJson(Map<String, dynamic> json) => AnalyticsEvent(
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        eventType: json['eventType'] as String,
+        userId: json['userId'] as String,
+        sessionId: json['sessionId'] as String,
+        properties: json['properties'] as Map<String, dynamic>,
+        metadata: json['metadata'] as Map<String, dynamic>?,
+      );
+
   /// Timestamp of the event.
   final DateTime timestamp;
 
@@ -41,16 +51,6 @@ class AnalyticsEvent {
         'properties': properties,
         'metadata': metadata,
       };
-
-  /// Create from JSON.
-  factory AnalyticsEvent.fromJson(Map<String, dynamic> json) => AnalyticsEvent(
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        eventType: json['eventType'] as String,
-        userId: json['userId'] as String,
-        sessionId: json['sessionId'] as String,
-        properties: json['properties'] as Map<String, dynamic>,
-        metadata: json['metadata'] as Map<String, dynamic>?,
-      );
 }
 
 /// Translation metrics for performance tracking.
@@ -303,12 +303,12 @@ class AnalyticsManager {
         totalTranslations: 0,
         successfulTranslations: 0,
         failedTranslations: 0,
-        averageQualityScore: 0.0,
-        averageProcessingTime: 0.0,
+        averageQualityScore: 0,
+        averageProcessingTime: 0,
         providerUsage: {},
         languagePairs: {},
-        cacheHitRate: 0.0,
-        errorRate: 0.0,
+        cacheHitRate: 0,
+        errorRate: 0,
       );
     }
 
@@ -432,7 +432,7 @@ class AnalyticsManager {
     // Sort by usage
     final mostUsedFeatures = Map.fromEntries(featureUsage.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value))
-      ..take(10));
+      ..take(10),);
 
     // User retention rate (simplified - users with events in both halves of period)
     final retentionRate = _calculateRetentionRate(relevantEvents);
@@ -560,7 +560,7 @@ class AnalyticsManager {
 
   /// Calculate user retention rate.
   double _calculateRetentionRate(List<AnalyticsEvent> events) {
-    if (events.isEmpty) return 0.0;
+    if (events.isEmpty) return 0;
 
     final midPoint = events.length ~/ 2;
     final firstHalf = events.sublist(0, midPoint);
@@ -609,7 +609,7 @@ class AnalyticsManager {
         final data = json.decode(content) as Map<String, dynamic>;
         final events = data['events'] as List<dynamic>;
         existingEvents.addAll(events
-            .map((e) => AnalyticsEvent.fromJson(e as Map<String, dynamic>)));
+            .map((e) => AnalyticsEvent.fromJson(e as Map<String, dynamic>),),);
       }
 
       existingEvents.add(event);
@@ -716,7 +716,7 @@ class AnalyticsIntegration {
 </head>
 <body>
     <h1>ARB Translator Analytics Dashboard</h1>
-    <p>Generated on ${DateTime.now().toString()}</p>
+    <p>Generated on ${DateTime.now()}</p>
 
     <div class="metric">
         <h3>Total Translations</h3>

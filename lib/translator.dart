@@ -87,8 +87,14 @@ class TranslationService {
 
     try {
     return await retryOptions.retry(
-      () => _performTranslation(text, targetLang, sourceLang,
-          description: description, surroundingContext: surroundingContext, keyName: keyName),
+      () => _performTranslation(
+        text,
+        targetLang,
+        sourceLang,
+        description: description,
+        surroundingContext: surroundingContext,
+        keyName: keyName,
+      ),
       retryIf: _shouldRetry,
     );
     } catch (e) {
@@ -248,8 +254,8 @@ class TranslationService {
 
     // No memory match, perform actual translation
     String translatedText;
-    String provider = 'unknown';
-    double qualityScore = 0.8;
+    var provider = 'unknown';
+    var qualityScore = 0.8;
 
     // Try AI providers first if available and preferred
     if (_aiProviderManager.providers.isNotEmpty &&
@@ -443,6 +449,6 @@ Future<String> translateText(String text, String targetLang) async {
   try {
     return await service.translateText(text, targetLang);
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }

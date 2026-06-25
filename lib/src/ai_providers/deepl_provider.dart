@@ -37,7 +37,7 @@ class DeepLProvider extends AIProvider {
     final deeplSourceLang = _convertToDeeplCode(sourceLang);
     final deeplTargetLang = _convertToDeeplCode(targetLang);
 
-    final url = 'https://api.deepl.com/v2/translate';
+    const url = 'https://api.deepl.com/v2/translate';
 
     // For DeepL, we can include context in the text if provided
     final enhancedText =
@@ -60,7 +60,7 @@ class DeepLProvider extends AIProvider {
     final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
     logger.debug(
-        'DeepL translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang');
+        'DeepL translation completed: ${translatedText.length} chars, detected source: $detectedSourceLang',);
 
     return TranslationResult(
       text: translatedText,
@@ -85,7 +85,7 @@ class DeepLProvider extends AIProvider {
     final deeplSourceLang = _convertToDeeplCode(sourceLang);
     final deeplTargetLang = _convertToDeeplCode(targetLang);
 
-    final url = 'https://api.deepl.com/v2/translate';
+    const url = 'https://api.deepl.com/v2/translate';
     final body = {
       'text': [sourceText],
       'source_lang': deeplSourceLang,
@@ -103,7 +103,7 @@ class DeepLProvider extends AIProvider {
       final lengthRatio = translation.length / deeplTranslation.length;
 
       // DeepL is generally high quality, so start with high score
-      double score = 0.9;
+      var score = 0.9;
 
       // Adjust based on similarity to DeepL's own translation
       score -= (1.0 - similarity) * 0.3;
@@ -191,13 +191,13 @@ class DeepLProvider extends AIProvider {
 
   /// Simple string similarity calculation.
   double _calculateSimilarity(String a, String b) {
-    if (a == b) return 1.0;
-    if (a.isEmpty || b.isEmpty) return 0.0;
+    if (a == b) return 1;
+    if (a.isEmpty || b.isEmpty) return 0;
 
     final aWords = a.toLowerCase().split(RegExp(r'\s+'));
     final bWords = b.toLowerCase().split(RegExp(r'\s+'));
 
-    final commonWords = aWords.where((word) => bWords.contains(word)).length;
+    final commonWords = aWords.where(bWords.contains).length;
     final totalWords = (aWords.length + bWords.length) / 2;
 
     return totalWords > 0 ? commonWords / totalWords : 0.0;

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// Real-time collaboration manager for team translation workflows.
 /// Provides conflict resolution, review workflows, and live synchronization.
@@ -177,7 +176,7 @@ class CollaborationManager {
     }
 
     // Apply the update
-    final update = _TranslationUpdate(
+    final update = TranslationUpdate(
       id: 'update-${DateTime.now().millisecondsSinceEpoch}',
       projectId: projectId,
       userId: userId,
@@ -376,8 +375,8 @@ class CollaborationManager {
         } else {
           request.response
             ..statusCode = 404
-            ..write('Not found')
-            ..close();
+            ..write('Not found');
+          unawaited(request.response.close());
         }
       }
     } catch (e) {
@@ -413,7 +412,7 @@ class CollaborationManager {
 
   /// Handle WebSocket message.
   void _handleWebSocketMessage(
-      String clientId, WebSocket socket, Map<String, dynamic> data) {
+      String clientId, WebSocket socket, Map<String, dynamic> data,) {
     final type = data['type'] as String?;
     final payload = data['payload'] as Map<String, dynamic>? ?? {};
 
@@ -426,11 +425,9 @@ class CollaborationManager {
           permissions:
               List<String>.from(payload['permissions'] as Iterable? ?? []),
         );
-        break;
 
       case 'leave_project':
         leaveProject(payload['userId'] as String);
-        break;
 
       case 'update_translation':
         updateTranslation(
@@ -441,7 +438,6 @@ class CollaborationManager {
           newValue: payload['value'] as String,
           description: payload['description'] as String?,
         );
-        break;
 
       case 'request_review':
         requestReview(
@@ -451,12 +447,10 @@ class CollaborationManager {
           key: payload['key'] as String,
           comment: payload['comment'] as String?,
         );
-        break;
 
       case 'ping':
         socket.add(json.encode(
-            {'type': 'pong', 'timestamp': DateTime.now().toIso8601String()}));
-        break;
+            {'type': 'pong', 'timestamp': DateTime.now().toIso8601String()},),);
     }
   }
 
@@ -475,7 +469,7 @@ class CollaborationManager {
 
   /// Broadcast message to clients in a specific project.
   void _broadcastToProject(
-      String projectId, String type, Map<String, dynamic> payload) {
+      String projectId, String type, Map<String, dynamic> payload,) {
     final message = json.encode({
       'type': type,
       'payload': payload,
@@ -491,9 +485,9 @@ class CollaborationManager {
   }
 
   /// Detect conflicts between translations.
-  _TranslationConflict _detectConflict(
-      _TranslationEntry existing, String newValue, String userId) {
-    return _TranslationConflict(
+  TranslationConflict _detectConflict(
+      _TranslationEntry existing, String newValue, String userId,) {
+    return TranslationConflict(
       key: existing.key,
       language: existing.language,
       existingValue: existing.value,
@@ -506,18 +500,18 @@ class CollaborationManager {
   }
 
   /// Resolve conflicts based on strategy.
-  Future<_ConflictResolution> _resolveConflict(
-      _TranslationConflict conflict, String userId) async {
+  Future<ConflictResolution> _resolveConflict(
+      TranslationConflict conflict, String userId,) async {
     switch (conflictResolutionStrategy) {
       case ConflictResolutionStrategy.lastWriterWins:
-        return _ConflictResolution(
+        return ConflictResolution(
           accepted: conflict.newTimestamp.isAfter(conflict.existingTimestamp),
           reason: 'Last writer wins',
         );
 
       case ConflictResolutionStrategy.manualResolution:
         // In a real implementation, this would prompt the user
-        return _ConflictResolution(
+        return ConflictResolution(
           accepted: false,
           reason: 'Manual resolution required',
         );
@@ -526,7 +520,7 @@ class CollaborationManager {
         // Check if the change is substantial
         final similarity =
             _calculateSimilarity(conflict.existingValue, conflict.newValue);
-        return _ConflictResolution(
+        return ConflictResolution(
           accepted: similarity < 0.8, // Accept if changes are significant
           reason:
               'Version control: similarity ${similarity.toStringAsFixed(2)}',
@@ -536,7 +530,7 @@ class CollaborationManager {
         // Accept if the new user has higher priority
         final newUserPriority = _getUserPriority(userId);
         final existingUserPriority = _getUserPriority(conflict.existingUserId);
-        return _ConflictResolution(
+        return ConflictResolution(
           accepted: newUserPriority >= existingUserPriority,
           reason: 'User priority: $newUserPriority vs $existingUserPriority',
         );
@@ -545,8 +539,8 @@ class CollaborationManager {
 
   /// Calculate similarity between two strings (simple implementation).
   double _calculateSimilarity(String a, String b) {
-    if (a == b) return 1.0;
-    if (a.isEmpty || b.isEmpty) return 0.0;
+    if (a == b) return 1;
+    if (a.isEmpty || b.isEmpty) return 0;
 
     final longer = a.length > b.length ? a : b;
     final shorter = a.length > b.length ? b : a;
@@ -592,9 +586,7 @@ class CollaborationManager {
     // Higher priority for users with more permissions or longer activity
     var priority = user.permissions.length;
     final hoursActive = DateTime.now().difference(user.joinedAt).inHours;
-    priority += hoursActive ~/ 24; // 1 point per day active
-
-    return priority;
+    return priority += hoursActive ~/ 24; // 1 point per day active
   }
 
   /// Clean up inactive users.
@@ -621,40 +613,77 @@ class CollaborationManager {
 
 /// Conflict resolution strategies.
 enum ConflictResolutionStrategy {
+  /// Last writer wins — newest change is accepted.
   lastWriterWins,
+
+  /// Requires manual resolution by a user.
   manualResolution,
+
+  /// Uses version control logic to decide.
   versionControl,
+
+  /// Higher-priority user's change wins.
   userPriority,
 }
 
 /// Review statuses.
-enum ReviewStatus { pending, approved, rejected }
+enum ReviewStatus {
+  /// Review is awaiting a decision.
+  pending,
+
+  /// Review was approved.
+  approved,
+
+  /// Review was rejected.
+  rejected,
+}
 
 /// Review decisions.
-enum ReviewDecision { approve, reject, requestChanges }
+enum ReviewDecision {
+  /// Approve the translation.
+  approve,
+
+  /// Reject the translation.
+  reject,
+
+  /// Request changes to the translation.
+  requestChanges,
+}
 
 /// Result of conflict resolution.
 class ConflictResolutionResult {
   ConflictResolutionResult._(
-      this.success, this.conflict, this.resolution, this.update, this.error);
+      this.success, this.conflict, this.resolution, this.update, this.error,);
 
-  factory ConflictResolutionResult.success(_TranslationUpdate update) {
+  /// Creates a successful result with the applied update.
+  factory ConflictResolutionResult.success(TranslationUpdate update) {
     return ConflictResolutionResult._(true, null, null, update, null);
   }
 
+  /// Creates a conflict result with the conflict and resolution details.
   factory ConflictResolutionResult.conflict(
-      _TranslationConflict conflict, _ConflictResolution resolution) {
+      TranslationConflict conflict, ConflictResolution resolution,) {
     return ConflictResolutionResult._(false, conflict, resolution, null, null);
   }
 
+  /// Creates a failure result with an error message.
   factory ConflictResolutionResult.failure(String error) {
     return ConflictResolutionResult._(false, null, null, null, error);
   }
 
+  /// Whether the operation succeeded.
   final bool success;
-  final _TranslationConflict? conflict;
-  final _ConflictResolution? resolution;
-  final _TranslationUpdate? update;
+
+  /// The conflict that occurred, if any.
+  final TranslationConflict? conflict;
+
+  /// The resolution applied, if any.
+  final ConflictResolution? resolution;
+
+  /// The applied translation update, if successful.
+  final TranslationUpdate? update;
+
+  /// Error message if the operation failed.
   final String? error;
 }
 
@@ -685,7 +714,7 @@ class _CollaborativeProject {
 
   final Map<String, _CollaborativeUser> _users = {};
   final Map<String, Map<String, _TranslationEntry>> _translations = {};
-  final List<_TranslationUpdate> _updates = [];
+  final List<TranslationUpdate> _updates = [];
   final List<_TranslationReview> _reviews = [];
   final List<_TranslationLock> _locks = [];
 
@@ -701,7 +730,7 @@ class _CollaborativeProject {
     return _translations[language]?[key];
   }
 
-  void applyUpdate(_TranslationUpdate update) {
+  void applyUpdate(TranslationUpdate update) {
     _translations.putIfAbsent(update.language, () => {});
     _translations[update.language]![update.key] = _TranslationEntry(
       key: update.key,
@@ -729,7 +758,7 @@ class _CollaborativeProject {
     // Check if already locked
     final existingLock = _locks.firstWhere(
       (l) => l.language == lock.language && l.key == lock.key,
-      orElse: () => _TranslationLock.empty(),
+      orElse: _TranslationLock.empty,
     );
 
     if (existingLock.id.isNotEmpty) {
@@ -742,7 +771,7 @@ class _CollaborativeProject {
 
   void removeLock(String userId, String language, String key) {
     _locks.removeWhere((lock) =>
-        lock.userId == userId && lock.language == language && lock.key == key);
+        lock.userId == userId && lock.language == language && lock.key == key,);
   }
 
   void cleanupStaleLocks(DateTime now) {
@@ -792,7 +821,7 @@ class _CollaborativeProject {
       'project': toJson(),
       'users': _users.values.map((u) => u.toJson()).toList(),
       'translations': _translations.map((lang, entries) =>
-          MapEntry(lang, entries.values.map((e) => e.toJson()).toList())),
+          MapEntry(lang, entries.values.map((e) => e.toJson()).toList(),),),
       'updates': _updates.map((u) => u.toJson()).toList(),
       'reviews': _reviews.map((r) => r.toJson()).toList(),
       'locks': _locks.map((l) => l.toJson()).toList(),
@@ -842,9 +871,9 @@ class _TranslationEntry {
     required this.key,
     required this.language,
     required this.value,
-    this.description,
     required this.lastModifiedBy,
     required this.lastModifiedAt,
+    this.description,
   });
 
   final String key;
@@ -866,31 +895,53 @@ class _TranslationEntry {
   }
 }
 
-class _TranslationUpdate {
-  _TranslationUpdate({
+/// Represents a translation update applied to a collaborative project.
+class TranslationUpdate {
+  /// Creates a [TranslationUpdate].
+  TranslationUpdate({
     required this.id,
     required this.projectId,
     required this.userId,
     required this.language,
     required this.key,
-    this.oldValue,
     required this.newValue,
+    required this.timestamp,
+    this.oldValue,
     this.description,
     this.metadata,
-    required this.timestamp,
   });
 
+  /// Unique identifier of this update.
   final String id;
+
+  /// Project this update belongs to.
   final String projectId;
+
+  /// User who made the update.
   final String userId;
+
+  /// Language being updated.
   final String language;
+
+  /// Translation key being updated.
   final String key;
+
+  /// Previous value before the update.
   final String? oldValue;
+
+  /// New translation value.
   final String newValue;
+
+  /// Optional description of the update.
   final String? description;
+
+  /// Optional metadata associated with the update.
   final Map<String, dynamic>? metadata;
+
+  /// When the update was made.
   final DateTime timestamp;
 
+  /// Converts this update to a JSON-serializable map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -914,9 +965,9 @@ class _TranslationReview {
     required this.requesterId,
     required this.language,
     required this.key,
-    this.comment,
     required this.status,
     required this.createdAt,
+    this.comment,
   });
 
   final String id;
@@ -948,8 +999,8 @@ class _ReviewDecision {
   _ReviewDecision({
     required this.reviewerId,
     required this.decision,
-    this.comment,
     required this.timestamp,
+    this.comment,
   });
 
   final String reviewerId;
@@ -1008,8 +1059,10 @@ class _TranslationLock {
   }
 }
 
-class _TranslationConflict {
-  _TranslationConflict({
+/// Represents a conflict between two translation updates.
+class TranslationConflict {
+  /// Creates a [TranslationConflict].
+  TranslationConflict({
     required this.key,
     required this.language,
     required this.existingValue,
@@ -1020,24 +1073,45 @@ class _TranslationConflict {
     required this.newTimestamp,
   });
 
+  /// The translation key in conflict.
   final String key;
+
+  /// The language in conflict.
   final String language;
+
+  /// The existing translation value.
   final String existingValue;
+
+  /// The new proposed translation value.
   final String newValue;
+
+  /// User ID who set the existing value.
   final String existingUserId;
+
+  /// User ID who proposed the new value.
   final String newUserId;
+
+  /// When the existing value was set.
   final DateTime existingTimestamp;
+
+  /// When the new value was proposed.
   final DateTime newTimestamp;
 
+  /// Whether the two values actually conflict.
   bool get isConflicting => existingValue != newValue;
 }
 
-class _ConflictResolution {
-  _ConflictResolution({
+/// Result of a conflict resolution decision.
+class ConflictResolution {
+  /// Creates a [ConflictResolution].
+  ConflictResolution({
     required this.accepted,
     required this.reason,
   });
 
+  /// Whether the incoming change was accepted.
   final bool accepted;
+
+  /// Reason for the resolution decision.
   final String reason;
 }

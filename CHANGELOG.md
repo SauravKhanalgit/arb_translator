@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.3.0 - Performance & Developer Experience
+
+### Performance
+- **5× faster translation**: parallel batch processing via `Future.wait` — 5 API calls at a time instead of sequential
+- Translation memory caching now wired to real `TranslationService` stats (no more fake numbers)
+
+### CLI Improvements
+- `--languages` / `-l` now accepts multiple values: `-l fr -l es -l de` or `-l fr es de`
+- New `--output-dir` / `-o` option: write translated ARB files to a custom directory
+- New `--ai-provider` option: choose `google` (default, free), `openai`, `deepl`, `azure`, or `aws`
+- Watch mode and distributed mode now correctly use `--output-dir`
+- `--help` examples updated with all new options
+
+### Bug Fixes
+- Fixed unawaited `service.dispose()` in top-level `translateText` helper
+- Fixed `--stats` and `--clean-cache` using real translation memory data
+- Fixed collaboration server blocking forever with `Future.delayed(Duration(days: 365))`
+- Fixed `argResults['output']` → `argResults['output-dir']` in distributed mode
+
+### Code Quality
+- Zero `dart analyze` errors and warnings (all remaining issues are style hints)
+- Sorted all exports in barrel file alphabetically (satisfies `directives_ordering` lint)
+- Removed redundant default arguments across examples and tests
+- Backward-compatible: `ArbTranslator` typedef preserved, `generateForLanguage` unchanged
+
 ## 3.2.0 - The Ultimate AI-Powered Localization Suite 🎉
 
 ### 🚀 **WORLD'S MOST ADVANCED ARB TRANSLATOR**

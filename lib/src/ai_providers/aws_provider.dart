@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:crypto/crypto.dart';
 import 'package:arb_translator_gen_z/src/ai_providers/ai_provider.dart';
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
 /// Amazon Web Services Translate provider.
 class AWSProvider extends AIProvider {
@@ -81,7 +81,7 @@ class AWSProvider extends AIProvider {
           headers: headers,
           body: json.encode(payload),
         )
-        .timeout(Duration(milliseconds: 30000));
+        .timeout(const Duration(milliseconds: 30000));
 
     if (response.statusCode != 200) {
       throw AIProviderException(
@@ -166,29 +166,23 @@ class AWSProvider extends AIProvider {
   }
 
   String _formatDate(DateTime date) {
-    return date
-            .toIso8601String()
-            .replaceAll('-', '')
-            .replaceAll(':', '')
-            .split('.')
-            .first +
-        'Z';
+    return '${date.toIso8601String().replaceAll('-', '').replaceAll(':', '').split('.').first}Z';
   }
 
   String _buildCanonicalRequest(String method, String canonicalUri,
-      Map<String, dynamic> payload, String dateStamp, String date) {
+      Map<String, dynamic> payload, String dateStamp, String date,) {
     final payloadHash =
         sha256.convert(utf8.encode(json.encode(payload))).toString();
     final canonicalHeaders =
         'host:translate.${config.awsTranslateRegion}.amazonaws.com\nx-amz-date:$dateStamp\n';
-    final signedHeaders = 'host;x-amz-date';
+    const signedHeaders = 'host;x-amz-date';
 
     return '$method\n$canonicalUri\n\n$canonicalHeaders\n$signedHeaders\n$payloadHash';
   }
 
   String _buildStringToSign(
-      String canonicalRequest, String date, String region) {
-    final algorithm = 'AWS4-HMAC-SHA256';
+      String canonicalRequest, String date, String region,) {
+    const algorithm = 'AWS4-HMAC-SHA256';
     final credentialScope = '$date/$region/translate/aws4_request';
     final canonicalRequestHash =
         sha256.convert(utf8.encode(canonicalRequest)).toString();
@@ -213,13 +207,13 @@ class AWSProvider extends AIProvider {
 
   /// Simple string similarity calculation.
   double _calculateSimilarity(String a, String b) {
-    if (a == b) return 1.0;
-    if (a.isEmpty || b.isEmpty) return 0.0;
+    if (a == b) return 1;
+    if (a.isEmpty || b.isEmpty) return 0;
 
     final aWords = a.toLowerCase().split(RegExp(r'\s+'));
     final bWords = b.toLowerCase().split(RegExp(r'\s+'));
 
-    final commonWords = aWords.where((word) => bWords.contains(word)).length;
+    final commonWords = aWords.where(bWords.contains).length;
     final totalWords = (aWords.length + bWords.length) / 2;
 
     return totalWords > 0 ? commonWords / totalWords : 0.0;

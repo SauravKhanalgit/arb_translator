@@ -13,9 +13,9 @@ void main() async {
     logger.initialize(config.logLevel);
     print('✅ TranslatorLogger initialized successfully');
 
-    // Test translator creation
-    final translator = ArbTranslator(config);
-    print('✅ ArbTranslator created successfully');
+    // Test translator creation (ArbTranslator is an alias for LocalizationTranslator)
+    final translator = LocalizationTranslator(config);
+    print('✅ LocalizationTranslator created successfully');
 
     // Test language utilities
     final info = getLanguageInfo('fr');

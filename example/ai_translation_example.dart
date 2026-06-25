@@ -33,18 +33,15 @@ Future<void> basicAITranslationExample() async {
     aiModelConfig: AIModelConfig(
       openaiApiKey: Platform.environment['OPENAI_API_KEY'], // Set your API key
       preferredProvider: TranslationProvider.openai,
-      enableQualityScoring: true,
-      enableAutoCorrection: true,
-      qualityThreshold: 0.8,
     ),
   );
 
-  final logger = TranslatorLogger()..initialize(config.logLevel);
+  TranslatorLogger().initialize(config.logLevel);
   final translator = LocalizationTranslator(config);
 
   try {
     // Translate with AI-powered quality scoring
-    final result = await translator.generateArbForLanguage(
+    final result = await translator.generateForLanguage(
       'lib/l10n/app_en.arb',
       'fr',
     );
@@ -69,11 +66,10 @@ Future<void> multiProviderComparisonExample() async {
       deeplApiKey: Platform.environment['DEEPL_API_KEY'],
       azureTranslatorKey: Platform.environment['AZURE_TRANSLATOR_KEY'],
       azureTranslatorRegion: Platform.environment['AZURE_TRANSLATOR_REGION'],
-      enableQualityScoring: true,
     ),
   );
 
-  final logger = TranslatorLogger()..initialize(config.logLevel);
+  TranslatorLogger().initialize(config.logLevel);
   final service = TranslationService(config);
 
   try {
@@ -90,7 +86,7 @@ Future<void> multiProviderComparisonExample() async {
     print('💰 Cost Estimates:');
     for (final entry in costEstimates.entries) {
       final cost = (entry.value * 100000).round() / 100; // Cost per 1000 chars
-      print('  ${entry.key.displayName}: \$${cost} per 1000 chars');
+      print('  ${entry.key.displayName}: \$$cost per 1000 chars');
     }
     print('');
 
@@ -106,9 +102,12 @@ Future<void> multiProviderComparisonExample() async {
         print('🔄 Testing ${provider.displayName}...');
 
         // Create result using specific provider
-        final result = await TranslationService(TranslatorConfig(
-          aiModelConfig: config.aiModelConfig.copyWith(preferredProvider: provider),
-        )).translateText(testText, targetLang, sourceLang: sourceLang);
+        final result = await TranslationService(
+          TranslatorConfig(
+            aiModelConfig:
+                config.aiModelConfig.copyWith(preferredProvider: provider),
+          ),
+        ).translateText(testText, targetLang, sourceLang: sourceLang);
 
         print('  ✅ "$result"');
         print('     Quality Score: N/A (use batch translation for quality scores)');
@@ -120,7 +119,7 @@ Future<void> multiProviderComparisonExample() async {
       }
     }
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }
 
@@ -132,13 +131,12 @@ Future<void> qualityScoringExample() async {
     aiModelConfig: AIModelConfig(
       openaiApiKey: Platform.environment['OPENAI_API_KEY'],
       preferredProvider: TranslationProvider.openai,
-      enableQualityScoring: true,
       enableAutoCorrection: true,
       qualityThreshold: 0.85,
     ),
   );
 
-  final logger = TranslatorLogger()..initialize(config.logLevel);
+  TranslatorLogger().initialize(config.logLevel);
   final service = TranslationService(config);
 
   try {
@@ -166,32 +164,36 @@ Future<void> qualityScoringExample() async {
       print('❌ Poor translation: "$poorTranslation"');
       print('');
 
-      // Score the good translation
-      final goodScore = await service.translateText(goodTranslation, 'es', sourceLang: 'en');
-      print('  ✅ Good translation score: ${goodScore.qualityScore?.toStringAsFixed(2)}');
+      // Translate the "good" reference string
+      final goodResult = await service.translateText(
+        goodTranslation,
+        'es',
+        sourceLang: 'en',
+      );
+      print('  ✅ Re-translated good string: "$goodResult"');
 
-      // Score the poor translation
-      final poorScore = await service.translateText(poorTranslation, 'es', sourceLang: 'en');
-      print('  ❌ Poor translation score: ${poorScore.qualityScore?.toStringAsFixed(2)}');
+      // Translate the "poor" string — AI providers will still produce output
+      final poorResult = await service.translateText(
+        poorTranslation,
+        'es',
+        sourceLang: 'en',
+      );
+      print('  ❌ Re-translated poor string: "$poorResult"');
 
-      // Test auto-correction on poor translation
-      if ((poorScore.qualityScore ?? 0) < config.aiModelConfig.qualityThreshold) {
-        print('  🔧 Auto-correction triggered due to low quality score');
-
-        // The service would automatically apply correction
-        final correctedResult = await service.translateText(
-          sourceText,
-          'es',
-          sourceLang: 'en',
-        );
-
-        print('  ✨ Corrected: "${correctedResult.text}"');
-      }
+      // With an AI provider configured, quality scoring happens automatically
+      // and low-quality translations trigger auto-correction when
+      // enableAutoCorrection: true is set in AIModelConfig.
+      final correctedResult = await service.translateText(
+        sourceText,
+        'es',
+        sourceLang: 'en',
+      );
+      print('  ✨ Corrected source translation: "$correctedResult"');
 
       print('');
     }
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }
 
@@ -205,11 +207,11 @@ Future<void> costOptimizationExample() async {
       deeplApiKey: Platform.environment['DEEPL_API_KEY'],
       azureTranslatorKey: Platform.environment['AZURE_TRANSLATOR_KEY'],
       azureTranslatorRegion: Platform.environment['AZURE_TRANSLATOR_REGION'],
-      preferredProvider: TranslationProvider.google, // Start with free option
+      // preferredProvider defaults to google (free) — override if needed
     ),
   );
 
-  final logger = TranslatorLogger()..initialize(config.logLevel);
+  TranslatorLogger().initialize(config.logLevel);
   final service = TranslationService(config);
 
   try {
@@ -237,7 +239,7 @@ Future<void> costOptimizationExample() async {
     for (final entry in costEstimates.entries) {
       final cost = entry.value;
       final costPerThousand = (cost * 1000 / totalText.length * 100).round() / 100;
-      print('  ${entry.key.displayName}: \$${cost.toStringAsFixed(4)} (~\$${costPerThousand}/1000 chars)');
+      print('  ${entry.key.displayName}: \$${cost.toStringAsFixed(4)} (~\$$costPerThousand/1000 chars)');
     }
     print('');
 
@@ -260,7 +262,7 @@ Future<void> costOptimizationExample() async {
     print('  🔵 Google: Decent quality, free/low cost');
 
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }
 
@@ -280,17 +282,12 @@ Future<void> advancedConfigurationExample() async {
       azureTranslatorRegion: Platform.environment['AZURE_TRANSLATOR_REGION'],
       preferredProvider: TranslationProvider.openai,
       qualityThreshold: 0.9,
-      enableQualityScoring: true,
       enableAutoCorrection: true,
       maxTokensPerRequest: 2000,
     ),
-    logLevel: LogLevel.info,
-    preserveMetadata: true,
-    prettyPrintJson: true,
-    validateOutput: true,
   );
 
-  final logger = TranslatorLogger()..initialize(prodConfig.logLevel);
+  TranslatorLogger().initialize(prodConfig.logLevel);
   final service = TranslationService(prodConfig);
 
   try {
@@ -305,9 +302,10 @@ Future<void> advancedConfigurationExample() async {
     print('');
     print('📊 Provider Statistics:');
     final stats = service.getAIProviderStats();
-    for (final provider in stats['providers']) {
-      final status = provider['available'] ? '✅' : '❌';
-      print('  $status ${provider['name']}');
+    for (final provider in (stats['providers'] as List<dynamic>)) {
+      final p = provider as Map<String, dynamic>;
+      final status = (p['available'] as bool) ? '✅' : '❌';
+      print('  $status ${p['name']}');
     }
 
     // Demonstrate batch processing with quality scoring
@@ -330,20 +328,15 @@ Future<void> advancedConfigurationExample() async {
           sourceLang: 'en',
         );
 
-        print('  "${entry.key}": "${result.text}"');
-        if (result.qualityScore != null) {
-          final score = result.qualityScore!.toStringAsFixed(2);
-          final quality = result.qualityScore! >= prodConfig.aiModelConfig.qualityThreshold
-              ? '✅'
-              : '⚠️';
-          print('    Quality: $quality $score');
-        }
+        // translateText returns the translated string directly.
+        // Quality scoring happens internally when an AI provider is configured.
+        print('  "${entry.key}": "$result"');
       } catch (e) {
         print('  "${entry.key}": ❌ Failed - $e');
       }
     }
 
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }

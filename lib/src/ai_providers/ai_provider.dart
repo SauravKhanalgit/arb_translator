@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:arb_translator_gen_z/src/config/translator_config.dart';
 import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
+import 'package:http/http.dart' as http;
 
 /// Represents a translation result with quality scoring.
 class TranslationResult {
@@ -118,7 +118,7 @@ abstract class AIProvider {
         Uri.parse(url),
         headers: headers,
         body: json.encode(body),
-      ).timeout(Duration(milliseconds: 30000));
+      ).timeout(const Duration(milliseconds: 30000));
 
       final processingTime = DateTime.now().difference(startTime).inMilliseconds;
 
@@ -159,8 +159,8 @@ class AIProviderException implements Exception {
   /// Creates an [AIProviderException] with the given parameters.
   const AIProviderException({
     required this.provider,
-    this.statusCode,
     required this.message,
+    this.statusCode,
   });
 
   /// The provider that caused the exception.
@@ -233,7 +233,7 @@ class QualityScorer {
   double _fallbackQualityScore(String sourceText, String translation) {
     // Simple heuristic-based scoring
     if (translation.isEmpty || translation.trim().isEmpty) {
-      return 0.0;
+      return 0;
     }
 
     // Check for obvious issues

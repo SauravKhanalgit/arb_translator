@@ -1,0 +1,15 @@
+# Compiled binaries
+bin/*.exe
+bin/*.app
+bin/*.out
+
+# Development / CI artifacts
+Dockerfile
+docker-compose.yml
+deploy.sh
+cloud-functions/
+vscode-extension/
+
+# Root-level test scripts (not part of the package API)
+test_flutter_integration.dart
+test_programmatic.dart

@@ -52,7 +52,7 @@ Future<void> main() async {
     for (final lang in targetLanguages) {
       print('\n📝 Translating to $lang...');
 
-      final outputPath = await translator.generateArbForLanguage(
+      final outputPath = await translator.generateForLanguage(
         sampleArbFile.path,
         lang,
       );

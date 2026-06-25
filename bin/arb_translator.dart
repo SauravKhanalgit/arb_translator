@@ -76,11 +76,23 @@ ArgParser _createArgParser() {
       abbr: 's',
       help: 'Path to the source ARB file (e.g., lib/l10n/app_en.arb)',
     )
-    ..addOption(
+    ..addMultiOption(
       'languages',
       abbr: 'l',
-      help:
-          'Target language codes (space-separated) or "all" for all languages',
+      help: 'Target language codes. Repeat for multiple: -l fr -l es -l de\n'
+          'Or comma-separated: -l fr,es,de  |  Use "all" for every language.',
+    )
+    ..addOption(
+      'output-dir',
+      abbr: 'o',
+      help: 'Directory where translated ARB files are written '
+          '(default: same directory as source file)',
+    )
+    ..addOption(
+      'ai-provider',
+      help: 'Translation provider to use',
+      allowed: ['google', 'openai', 'deepl', 'azure', 'aws'],
+      defaultsTo: 'google',
     )
     ..addOption(
       'config',
@@ -304,7 +316,8 @@ Future<void> _handleCommand(ArgResults argResults, ArgParser parser) async {
 
   // Validate required arguments for translation
   final sourceFile = argResults['source'] as String?;
-  final rawLangs = argResults['languages'] as String?;
+  final langArgs = argResults['languages'] as List<String>;
+  final outputDir = argResults['output-dir'] as String?;
   final validateOnly = argResults['validate-only'] as bool;
 
   if (sourceFile == null) {
@@ -313,13 +326,14 @@ Future<void> _handleCommand(ArgResults argResults, ArgParser parser) async {
     exit(1);
   }
 
-  if (!validateOnly && rawLangs == null) {
+  if (!validateOnly && langArgs.isEmpty) {
     stderr.writeln('Error: --languages is required for translation.');
+    stderr.writeln('  Examples: -l fr es de   |   -l fr,es   |   -l all');
     stderr.writeln('Use --help for usage information.');
     exit(1);
   }
 
-  // Load configuration
+  // Load configuration (--ai-provider override applied inside _loadConfig)
   final configPath = argResults['config'] as String?;
   final config = await _loadConfig(configPath, argResults);
 
@@ -339,8 +353,9 @@ Future<void> _handleCommand(ArgResults argResults, ArgParser parser) async {
     return;
   }
 
-  // Parse target languages (safe to use ! since we checked for null above)
-  final targetLanguages = _parseTargetLanguages(rawLangs!, logger);
+  // Flatten multi-option list: [-l fr es] or [-l fr,es] both work
+  final rawLangs = langArgs.join(' ');
+  final targetLanguages = _parseTargetLanguages(rawLangs, logger);
 
   if (targetLanguages.isEmpty) {
     logger.error('No valid target languages specified');
@@ -354,6 +369,7 @@ Future<void> _handleCommand(ArgResults argResults, ArgParser parser) async {
     config,
     argResults['overwrite'] as bool,
     logger,
+    outputDir: outputDir,
   );
 }
 
@@ -366,31 +382,38 @@ void _showUsage(ArgParser parser) {
   print(parser.usage);
   print('');
   print('Examples:');
-  print('  # Basic translation to French and Spanish');
-  print('  arb_translator -s lib/l10n/app_en.arb -l fr es');
+  print('  # Translate to multiple languages (repeat -l or space-separate)');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr -l es -l de');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr es de');
   print('');
-  print('  # AI-powered translation with quality scoring');
-  print('  arb_translator -s lib/l10n/app_en.arb -l fr es --ai-provider openai');
+  print('  # Translate to all supported languages');
+  print('  arb_translator -s lib/l10n/app_en.arb -l all');
   print('');
-  print('  # Test all configured AI providers');
-  print('  arb_translator --test-ai-providers');
+  print('  # Custom output directory (-o / --output-dir)');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr es -o build/l10n');
   print('');
-  print('  # Show AI provider statistics');
-  print('  arb_translator --ai-stats');
-  print('');
-  print('  # Interactive mode with confirmation');
-  print('  arb_translator -s lib/l10n/app_en.arb -l fr --interactive');
+  print('  # AI-powered translation (google, openai, deepl, azure, aws)');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr --ai-provider openai');
   print('');
   print('  # Preview changes without applying them');
   print('  arb_translator -s lib/l10n/app_en.arb -l fr es --diff');
   print('');
-  print('  # Show translation statistics');
-  print('  arb_translator --stats -s lib/l10n/app_en.arb');
+  print('  # Interactive mode — confirm each string before translating');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr --interactive');
   print('');
-  print('  # Validate ARB file only');
+  print('  # Watch mode — auto-translate on source file changes');
+  print('  arb_translator -s lib/l10n/app_en.arb -l fr es --watch');
+  print('');
+  print('  # Validate ARB file only (no translation)');
   print('  arb_translator -s lib/l10n/app_en.arb --validate-only');
   print('');
-  print('  # Generate configuration file');
+  print('  # Show translation statistics and cache info');
+  print('  arb_translator --stats -s lib/l10n/app_en.arb');
+  print('');
+  print('  # Test all configured AI providers');
+  print('  arb_translator --test-ai-providers');
+  print('');
+  print('  # Generate a starter configuration file');
   print('  arb_translator --init-config');
 }
 
@@ -456,12 +479,38 @@ Future<TranslatorConfig> _loadConfig(
       config = config.copyWith(logLevel: LogLevel.error);
     }
 
+    // Apply --ai-provider flag
+    final aiProviderArg = argResults['ai-provider'] as String?;
+    if (aiProviderArg != null && aiProviderArg != 'google') {
+      final provider = _parseTranslationProvider(aiProviderArg);
+      config = config.copyWith(
+        aiModelConfig: config.aiModelConfig.copyWith(
+          preferredProvider: provider,
+        ),
+      );
+    }
+
     return config;
   } catch (e) {
     stderr.writeln(
       'Warning: Failed to load configuration file, using defaults: $e',
     );
     return const TranslatorConfig();
+  }
+}
+
+TranslationProvider _parseTranslationProvider(String name) {
+  switch (name.toLowerCase()) {
+    case 'openai':
+      return TranslationProvider.openai;
+    case 'deepl':
+      return TranslationProvider.deepl;
+    case 'azure':
+      return TranslationProvider.azure;
+    case 'aws':
+      return TranslationProvider.aws;
+    default:
+      return TranslationProvider.google;
   }
 }
 
@@ -547,8 +596,9 @@ Future<void> _performTranslation(
   List<String> targetLanguages,
   TranslatorConfig config,
   bool overwrite,
-  TranslatorLogger logger,
-) async {
+  TranslatorLogger logger, {
+  String? outputDir,
+}) async {
   final translator = LocalizationTranslator(config);
 
   try {
@@ -556,6 +606,10 @@ Future<void> _performTranslation(
     logger.info(
       'Starting translation of $sourceFile to ${targetLanguages.length} languages',
     );
+
+    if (outputDir != null) {
+      logger.info('Output directory: $outputDir');
+    }
 
     // Show language list
     final languageNames = targetLanguages
@@ -567,6 +621,7 @@ Future<void> _performTranslation(
       sourceFile,
       targetLanguages,
       overwrite: overwrite,
+      outputDir: outputDir,
     );
 
     final duration = DateTime.now().difference(startTime);
@@ -621,19 +676,27 @@ Future<void> _performTranslation(
 Future<void> _cleanTranslationCache() async {
   print('🧹 Cleaning translation memory cache...');
 
-  // Mock implementation for demonstration
-  await Future<void>.delayed(const Duration(milliseconds: 500));
+  final config = await TranslatorConfig.fromFile().catchError(
+    (_) => const TranslatorConfig(),
+  );
+  final service = TranslationService(config);
 
+  final statsBefore = service.getMemoryStats();
+  service.clearMemory();
+  await service.dispose();
+
+  final entriesRemoved = (statsBefore['total_entries'] as int?) ?? 0;
   print('✅ Translation cache cleared');
   print('📊 Cache statistics:');
-  print('  - Entries removed: 1,234');
-  print('  - Memory freed: 15.7 MB');
-  print('  - Cache hit rate reset');
+  print('  - Entries removed: $entriesRemoved');
+  if (entriesRemoved == 0) {
+    print('  - Cache was already empty');
+  }
 }
 
 /// Show translation statistics (v2.1.0)
 Future<void> _showTranslationStats(String? sourceFile) async {
-  print('📊 Translation Statistics (v2.1.0)');
+  print('📊 Translation Statistics');
   print('');
 
   if (sourceFile != null) {
@@ -647,23 +710,34 @@ Future<void> _showTranslationStats(String? sourceFile) async {
       print('  - Total entries: ${content.length}');
       print('  - Translatable strings: ${translations.length}');
       print(
-          '  - Average string length: ${_calculateAverageLength(translations)} chars');
+        '  - Average string length: ${_calculateAverageLength(translations)} chars',
+      );
     } catch (e) {
       print('⚠️  Could not read source file: $e');
     }
   }
 
+  // Show real memory stats from the translation cache
+  final config = await TranslatorConfig.fromFile().catchError(
+    (_) => const TranslatorConfig(),
+  );
+  final service = TranslationService(config);
+  final memStats = service.getMemoryStats();
+  await service.dispose();
+
   print('');
-  print('🚀 Performance metrics:');
-  print('  - Cache hit rate: 73.2%');
-  print('  - Average translation time: 1.2s');
-  print('  - API calls saved: 1,847');
-  print('  - Memory usage: 12.3 MB');
-  print('');
-  print('🌐 Language distribution:');
-  print('  - Most translated: Spanish (es) - 45 files');
-  print('  - Least translated: Arabic (ar) - 12 files');
-  print('  - Total languages: 28');
+  print('🗄️  Translation Memory:');
+  print('  - Cached entries: ${memStats['total_entries'] ?? 0}');
+  print('  - Cache hits: ${memStats['cache_hits'] ?? 0}');
+  print('  - Cache misses: ${memStats['cache_misses'] ?? 0}');
+
+  final hits = (memStats['cache_hits'] as int?) ?? 0;
+  final misses = (memStats['cache_misses'] as int?) ?? 0;
+  final total = hits + misses;
+  if (total > 0) {
+    final hitRate = (hits / total * 100).toStringAsFixed(1);
+    print('  - Cache hit rate: $hitRate%');
+  }
 }
 
 /// Export glossary for review (v2.1.0)
@@ -730,7 +804,7 @@ Future<void> _analyzeArbFiles(ArgResults argResults) async {
         final content = await ArbHelper.readArbFile(file.path);
         final locale = content['@@locale']?.toString() ?? 'unknown';
         arbFiles[locale] = content;
-        print('📄 Found: ${file.path} (${locale})');
+        print('📄 Found: ${file.path} ($locale)');
       }
     }
 
@@ -833,7 +907,7 @@ Future<void> _analyzeArbFiles(ArgResults argResults) async {
 /// Watch mode for automatic translation on file changes (v3.1.0)
 Future<void> _watchMode(ArgResults argResults) async {
   final sourceDir = argResults['source'] as String?;
-  final targetLangs = argResults['languages'] as String?;
+  final langArgs = argResults['languages'] as List<String>;
   final configPath = argResults['config'] as String?;
   final config = await _loadConfig(configPath, argResults);
   final logger = TranslatorLogger();
@@ -845,7 +919,7 @@ Future<void> _watchMode(ArgResults argResults) async {
     exit(1);
   }
 
-  if (targetLangs == null) {
+  if (langArgs.isEmpty) {
     stderr.writeln('❌ Error: --languages is required for watch mode');
     stderr.writeln('Usage: arb_translator --watch -s lib/l10n/ -l fr es');
     exit(1);
@@ -857,7 +931,7 @@ Future<void> _watchMode(ArgResults argResults) async {
     exit(1);
   }
 
-  final languages = _parseTargetLanguages(targetLangs, logger);
+  final languages = _parseTargetLanguages(langArgs.join(' '), logger);
 
   print('👀 Watch Mode Active');
   print('📁 Watching: $sourceDir');
@@ -869,7 +943,7 @@ Future<void> _watchMode(ArgResults argResults) async {
   await _processArbFiles(sourceDirectory, languages, config, logger);
 
   // Set up file watcher
-  final watcher = sourceDirectory.watch(events: FileSystemEvent.all);
+  final watcher = sourceDirectory.watch();
 
   await for (final event in watcher) {
     if (event.path.endsWith('.arb') &&
@@ -913,7 +987,6 @@ Future<void> _processArbFiles(
         await translator.generateMultipleLanguages(
           sourceFile.path,
           languages,
-          overwrite: true,
         );
         logger.success('Updated translations for ${sourceFile.path}');
       } catch (e) {
@@ -929,7 +1002,7 @@ Future<void> _processArbFiles(
 Future<void> _ciMode(ArgResults argResults) async {
   final sourceDir = argResults['source'] as String?;
   final configPath = argResults['config'] as String?;
-  final config = await _loadConfig(configPath, argResults);
+  await _loadConfig(configPath, argResults);
   final logger = TranslatorLogger();
   logger.initialize(LogLevel.warning); // Less verbose for CI
 
@@ -1180,7 +1253,8 @@ Future<void> _startWebServer(ArgResults argResults) async {
     print('🛑 Press Ctrl+C to exit');
 
     // Simulate server running
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
+    // Web server is a placeholder — full implementation uses package:shelf
 
   } catch (e) {
     stderr.writeln('❌ Failed to start web server: $e');
@@ -1191,8 +1265,11 @@ Future<void> _startWebServer(ArgResults argResults) async {
 /// Run distributed translation (v3.2.0)
 Future<void> _runDistributedTranslation(ArgResults argResults) async {
   final sourceFile = argResults['source'] as String?;
-  final targetLanguages = (argResults['languages'] as String?)?.split(',') ?? [];
-  final outputDir = argResults['output'] as String?;
+  final langArgs = argResults['languages'] as List<String>;
+  final targetLanguages = langArgs.expand((l) => l.split(RegExp(r'[\s,]+')))
+      .where((l) => l.isNotEmpty)
+      .toList();
+  final outputDir = argResults['output-dir'] as String?;
   final configPath = argResults['config'] as String?;
   final workerCount = int.tryParse(argResults['workers'] as String) ?? 4;
 
@@ -1227,7 +1304,6 @@ Future<void> _runDistributedTranslation(ArgResults argResults) async {
       config: config,
       maxWorkers: workerCount,
       taskTimeout: const Duration(minutes: 15),
-      enableLoadBalancing: true,
     );
 
     await coordinator.initialize();
@@ -1244,7 +1320,6 @@ Future<void> _runDistributedTranslation(ArgResults argResults) async {
       sourceFile: sourceFile,
       targetLanguages: targetLanguages,
       jobId: jobId,
-      priority: 0,
     );
 
     print('✅ Job submitted! Processing ${targetLanguages.length} languages...');
@@ -1355,8 +1430,6 @@ Future<void> _startCollaborationServer(ArgResults argResults) async {
     // Import collaboration manager
     final collaborationManager = CollaborationManager(
       config: config,
-      enableWebSocket: true,
-      conflictResolutionStrategy: ConflictResolutionStrategy.lastWriterWins,
     );
 
     await collaborationManager.initialize();
@@ -1377,17 +1450,17 @@ Future<void> _startCollaborationServer(ArgResults argResults) async {
     print('  • translation_locked - Lock status updates');
     print('');
     print('💡 Usage examples:');
-    print('  1. Create project: curl -X POST http://localhost:8080/api/projects \\');
-    print('     -H "Content-Type: application/json" \\');
-    print('     -d \'{"name":"MyApp","sourceLanguage":"en","targetLanguages":["es","fr"],"creatorId":"user1","creatorName":"John"}\'');
+    print(r'  1. Create project: curl -X POST http://localhost:8080/api/projects \');
+    print(r'     -H "Content-Type: application/json" \');
+    print('     -d {"name":"MyApp","sourceLanguage":"en","targetLanguages":["es","fr"],"creatorId":"user1","creatorName":"John"}');
     print('');
     print('  2. Join via WebSocket: Connect to ws://localhost:8081 and send:');
     print('     {"type":"join_project","payload":{"projectId":"...", "userId":"user1", "userName":"John", "permissions":["read","write"]}}');
     print('');
     print('🛑 Press Ctrl+C to stop the collaboration server');
 
-    // Keep the server running
-    await Future.delayed(Duration(days: 365)); // Keep running until interrupted
+    // Keep running until the user presses Ctrl+C.
+    await ProcessSignal.sigint.watch().first;
 
   } catch (e) {
     stderr.writeln('❌ Failed to start collaboration server: $e');
@@ -1431,7 +1504,7 @@ Future<void> _testAIProviders(ArgResults argResults) async {
   } catch (e) {
     print('❌ Test failed: $e');
   } finally {
-    service.dispose();
+    await service.dispose();
   }
 }
 
@@ -1453,13 +1526,16 @@ Future<void> _showAIStats(ArgResults argResults) async {
   print('  Available providers: ${stats['available_providers']}');
   print('');
 
-  if (stats['providers'].isNotEmpty) {
+  final providerList = stats['providers'] as List<dynamic>;
+  if (providerList.isNotEmpty) {
     print('🔧 Provider Details:');
-    for (final provider in stats['providers']) {
-      final available = provider['available'] ? '✅' : '❌';
-      final cost = (provider['cost_per_char'] * 100000).round() / 100; // Convert to cost per 1000 chars
+    for (final raw in providerList) {
+      final provider = raw as Map<String, dynamic>;
+      final available = (provider['available'] as bool) ? '✅' : '❌';
+      final cost =
+          ((provider['cost_per_char'] as num) * 100000).round() / 100;
       print('  $available ${provider['name']}');
-      print('    Cost: \$${cost} per 1000 characters');
+      print('    Cost: \$$cost per 1000 characters');
       print('    Max chars/request: ${provider['max_chars']}');
       print('');
     }
@@ -1474,17 +1550,17 @@ Future<void> _showAIStats(ArgResults argResults) async {
     print('  Quality threshold: ${config.aiModelConfig.qualityThreshold}');
   }
 
-  service.dispose();
+  await service.dispose();
 }
 
 /// Show translation diff without making changes (v2.1.0)
 Future<void> _showTranslationDiff(ArgResults argResults) async {
   final sourceFile = argResults['source'] as String?;
-  final languages = argResults['languages'] as String?;
+  final langArgs = argResults['languages'] as List<String>;
 
-  if (sourceFile == null || languages == null) {
+  if (sourceFile == null || langArgs.isEmpty) {
     print('❌ Both source file and target languages required for diff mode');
-    print('Usage: arb_translator --diff -s app_en.arb -l "fr es de"');
+    print('Usage: arb_translator --diff -s app_en.arb -l fr es de');
     return;
   }
 
@@ -1494,7 +1570,8 @@ Future<void> _showTranslationDiff(ArgResults argResults) async {
   try {
     final content = await ArbHelper.readArbFile(sourceFile);
     final translations = ArbHelper.getTranslations(content);
-    final targetLangs = _parseTargetLanguages(languages, TranslatorLogger());
+    final targetLangs =
+        _parseTargetLanguages(langArgs.join(' '), TranslatorLogger());
 
     print('📁 Source: $sourceFile');
     print('🌐 Target languages: ${targetLangs.join(", ")}');
@@ -1513,13 +1590,17 @@ Future<void> _showTranslationDiff(ArgResults argResults) async {
     print('');
     print('⚡ Estimated processing:');
     print(
-        '  - New translations needed: ${translations.length * targetLangs.length}');
+      '  - New translations needed: ${translations.length * targetLangs.length}',
+    );
     print(
-        '  - Cache hits expected: ${(translations.length * targetLangs.length * 0.73).round()}');
+      '  - Cache hits expected: ${(translations.length * targetLangs.length * 0.73).round()}',
+    );
     print(
-        '  - API calls required: ${(translations.length * targetLangs.length * 0.27).round()}');
+      '  - API calls required: ${(translations.length * targetLangs.length * 0.27).round()}',
+    );
     print(
-        '  - Estimated time: ${_estimateTime(translations.length, targetLangs.length)}');
+      '  - Estimated time: ${_estimateTime(translations.length, targetLangs.length)}',
+    );
   } catch (e) {
     print('❌ Failed to analyze source file: $e');
   }
