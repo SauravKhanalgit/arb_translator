@@ -89,7 +89,7 @@ class ArbHandler extends FormatHandler {
     bool createBackup = false,
   }) async {
     await writeArbFile(filePath, translations,
-        prettyPrint: prettyPrint, createBackup: createBackup);
+        prettyPrint: prettyPrint, createBackup: createBackup,);
   }
 
   @override
@@ -142,7 +142,7 @@ class JsonHandler extends FormatHandler {
       await file.copy(backupPath);
     }
 
-    final encoder = prettyPrint ? JsonEncoder.withIndent('  ') : JsonEncoder();
+    final encoder = prettyPrint ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
 
     await file.writeAsString(encoder.convert(translations));
   }
@@ -311,13 +311,13 @@ class CsvHandler extends FormatHandler {
 
     // Find key and value columns
     final keyIndex = headers.indexOf('key');
-    final valueIndex = headers.indexOf('value') != -1
+    final valueIndex = headers.contains('value')
         ? headers.indexOf('value')
         : headers
             .indexOf(headers.firstWhere((h) => h != 'key', orElse: () => ''));
 
     if (keyIndex == -1) {
-      throw FormatException('CSV must have a "key" column');
+      throw const FormatException('CSV must have a "key" column');
     }
 
     // Parse data rows
@@ -430,6 +430,7 @@ class CsvHandler extends FormatHandler {
   }
 }
 
+/// Reads an ARB file from [path] and returns its content as a map.
 Future<Map<String, dynamic>> readArbFile(String path) async {
   final file = File(path);
   if (!await file.exists()) {
@@ -445,6 +446,7 @@ Future<Map<String, dynamic>> readArbFile(String path) async {
   }
 }
 
+/// Writes [content] to an ARB file at [path].
 Future<void> writeArbFile(
   String path,
   Map<String, dynamic> content, {
@@ -458,11 +460,12 @@ Future<void> writeArbFile(
     await file.copy(backupPath);
   }
 
-  final encoder = prettyPrint ? JsonEncoder.withIndent('  ') : JsonEncoder();
+  final encoder = prettyPrint ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
 
   await file.writeAsString(encoder.convert(content));
 }
 
+/// Validates the content of an ARB file and returns a list of issues.
 List<String> validateArbContent(Map<String, dynamic> content) {
   final issues = <String>[];
 
@@ -507,6 +510,7 @@ List<String> validateArbContent(Map<String, dynamic> content) {
   return issues;
 }
 
+/// Extracts translatable key-value pairs from ARB [content].
 Map<String, String> getTranslations(Map<String, dynamic> content) {
   final translations = <String, String>{};
 

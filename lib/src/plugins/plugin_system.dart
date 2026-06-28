@@ -249,7 +249,7 @@ class PluginManager {
 
         logger.info('Unregistered plugin: ${plugin.name} (${plugin.id})');
       } catch (e) {
-        logger.error('Error disposing plugin ${pluginId}: $e');
+        logger.error('Error disposing plugin $pluginId: $e');
       }
     }
   }

@@ -6,7 +6,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// Web server for the ARB Translator GUI.
 class WebServer {

@@ -1,4 +1,4 @@
-import 'package:arb_translator_gen_z/src/config/translator_config.dart';
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
 import 'package:test/test.dart';
 
 void main() {

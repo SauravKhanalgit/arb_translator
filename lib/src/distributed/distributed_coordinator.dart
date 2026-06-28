@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
-import 'package:arb_translator_gen_z/src/logging/translator_logger.dart';
 
 /// Distributed processing coordinator for large-scale translation projects.
 /// Splits work across multiple workers and coordinates results.
@@ -49,14 +48,24 @@ class DistributedCoordinator {
       _activeTasks.length +
       _completedTasks.length +
       _failedTasks.length;
+  /// Number of pending tasks in the queue.
   int get pendingTasks => _taskQueue.length;
+
+  /// Number of currently active tasks.
   int get activeTasks => _activeTasks.length;
+
+  /// Number of completed tasks.
   int get completedTasks => _completedTasks.length;
+
+  /// Number of failed tasks.
   int get failedTasks => _failedTasks.length;
 
   /// Performance metrics.
+  /// Completion rate as a fraction of total tasks.
   double get completionRate =>
       totalTasks == 0 ? 0.0 : completedTasks / totalTasks;
+
+  /// Average time taken to complete a task.
   Duration get averageTaskTime {
     if (_completedTasks.isEmpty) return Duration.zero;
 
@@ -121,7 +130,7 @@ class DistributedCoordinator {
 
       final allCompleted = jobTasks.every((task) =>
           task.status == _TaskStatus.completed ||
-          task.status == _TaskStatus.failed);
+          task.status == _TaskStatus.failed,);
 
       if (allCompleted) {
         timer.cancel();
@@ -284,7 +293,7 @@ class DistributedCoordinator {
     final completedTasks = tasks.where((task) =>
         task.status == _TaskStatus.completed &&
         task.completedAt != null &&
-        task.startedAt != null);
+        task.startedAt != null,);
 
     if (completedTasks.isEmpty) return Duration.zero;
 
@@ -346,7 +355,7 @@ class DistributedCoordinator {
       task.assignedWorker = worker.id;
 
       _activeTasks[task.id] = task;
-      worker.assignTask(task);
+      worker._assignTask(task);
 
       _logger.debug('📤 Assigned task ${task.id} to worker ${worker.id}');
     }
@@ -366,14 +375,14 @@ class DistributedCoordinator {
 
     for (final task in timedOutTasks) {
       _logger.warning(
-          '⏰ Task ${task.id} timed out after ${taskTimeout.inMinutes} minutes');
+          '⏰ Task ${task.id} timed out after ${taskTimeout.inMinutes} minutes',);
       _handleTaskFailure(task, 'Task timeout');
     }
   }
 
   /// Handle task completion from a worker.
   void _handleTaskCompletion(
-      _TranslationTask task, Map<String, dynamic> result) {
+      _TranslationTask task, Map<String, dynamic> result,) {
     task.status = _TaskStatus.completed;
     task.completedAt = DateTime.now();
     task.result = result;
@@ -456,7 +465,7 @@ class DistributedWorker {
   }
 
   /// Assign a task to this worker.
-  void assignTask(_TranslationTask task) {
+  void _assignTask(_TranslationTask task) {
     _assignedTasks.add(task);
     _logger.debug('📥 Worker $id received task ${task.id}');
   }
@@ -469,7 +478,7 @@ class DistributedWorker {
       'activeTasks': activeTasks,
       'available': isAvailable,
       'uptime': DateTime.now()
-          .difference(DateTime.now()), // TODO: Track actual uptime
+          .difference(DateTime.now()), // TODO(dev): Track actual uptime
     };
   }
 
@@ -492,7 +501,7 @@ class DistributedWorker {
 
   /// Execute a translation task.
   Future<Map<String, dynamic>> _executeTranslationTask(
-      _TranslationTask task) async {
+      _TranslationTask task,) async {
     final results = <String, dynamic>{};
     final startTime = DateTime.now();
 

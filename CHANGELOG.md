@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.4.0 - pub.dev 160/160 polish
+
+### Fixes
+- Removed unused `cli_util` and `intl` dependencies (were blocking 10/10 dependency score)
+- Fixed unnecessary internal `src/` imports in tests and `web_server.dart` (barrel file now used)
+- Trimmed pubspec description to 165 chars (was 216, over the 180 limit)
+- Removed 7 MB compiled binary from published archive via `.pubignore`
+- Complete README rewrite: accurate features, current API, real CI/CD example
+
 ## 3.3.0 - Performance & Developer Experience
 
 ### Performance

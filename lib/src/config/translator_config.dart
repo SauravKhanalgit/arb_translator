@@ -104,7 +104,7 @@ class TranslatorConfig {
           awsTranslateRegion:
               aiConfig['awsTranslateRegion'] as String? ?? 'us-east-1',
           preferredProvider: _parseTranslationProvider(
-              aiConfig['preferredProvider'] as String? ?? 'google'),
+              aiConfig['preferredProvider'] as String? ?? 'google',),
           qualityThreshold:
               (aiConfig['qualityThreshold'] as num?)?.toDouble() ?? 0.8,
           enableQualityScoring:

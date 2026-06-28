@@ -1,8 +1,10 @@
 name: arb_translator_gen_z
 description: >-
-  World's most advanced ARB localization tool featuring AI-powered translation, real-time collaboration, distributed processing, web GUI, and VS Code integration. Supports 100+ languages with enterprise-grade reliability.
+  Translate Flutter ARB files to 100+ languages. Free with Google Translate or
+  use OpenAI, DeepL, Azure, or AWS. CLI + programmatic API, watch mode,
+  and CI/CD support.
 
-version: 3.3.0
+version: 3.4.0
 homepage: https://github.com/sauravkhanalgit/arb_translator
 repository: https://github.com/sauravkhanalgit/arb_translator
 documentation: https://github.com/sauravkhanalgit/arb_translator/blob/main/README.md
@@ -26,11 +28,9 @@ environment:
 
 dependencies:
   args: ^2.7.0
-  cli_util: ^0.4.1
   collection: ^1.18.0
   crypto: ^3.0.3
   http: ^1.5.0
-  intl: ^0.19.0
   logging: ^1.2.0
   path: ^1.9.0
   retry: ^3.1.2

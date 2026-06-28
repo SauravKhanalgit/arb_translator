@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:arb_translator_gen_z/arb_helper.dart';
-import 'package:arb_translator_gen_z/src/exceptions/arb_exceptions.dart';
+import 'package:arb_translator_gen_z/arb_translator_gen_z.dart';
 import 'package:test/test.dart';
 
 void main() {

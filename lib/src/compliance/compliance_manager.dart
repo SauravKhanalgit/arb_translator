@@ -18,6 +18,19 @@ class AuditEntry {
     this.confidential = false,
   });
 
+  /// Create from JSON.
+  factory AuditEntry.fromJson(Map<String, dynamic> json) => AuditEntry(
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        action: json['action'] as String,
+        userId: json['userId'] as String,
+        resource: json['resource'] as String,
+        details: json['details'] as Map<String, dynamic>,
+        ipAddress: json['ipAddress'] as String,
+        userAgent: json['userAgent'] as String,
+        sessionId: json['sessionId'] as String?,
+        confidential: json['confidential'] as bool? ?? false,
+      );
+
   /// Timestamp of the action.
   final DateTime timestamp;
 
@@ -44,19 +57,6 @@ class AuditEntry {
 
   /// Whether this entry contains confidential information.
   final bool confidential;
-
-  /// Create from JSON.
-  factory AuditEntry.fromJson(Map<String, dynamic> json) => AuditEntry(
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        action: json['action'] as String,
-        userId: json['userId'] as String,
-        resource: json['resource'] as String,
-        details: json['details'] as Map<String, dynamic>,
-        ipAddress: json['ipAddress'] as String,
-        userAgent: json['userAgent'] as String,
-        sessionId: json['sessionId'] as String?,
-        confidential: json['confidential'] as bool? ?? false,
-      );
 
   /// Convert to JSON for storage.
   Map<String, dynamic> toJson() => {
@@ -104,6 +104,17 @@ class RetentionPolicy {
     this.complianceFrameworks = const [],
   });
 
+  /// Create from JSON.
+  factory RetentionPolicy.fromJson(Map<String, dynamic> json) =>
+      RetentionPolicy(
+        dataType: json['dataType'] as String,
+        retentionPeriod: json['retentionPeriod'] as int,
+        deletionMethod: json['deletionMethod'] as String,
+        autoDelete: json['autoDelete'] as bool? ?? true,
+        complianceFrameworks:
+            List<String>.from(json['complianceFrameworks'] as Iterable? ?? []),
+      );
+
   /// Type of data (audit_logs, translations, user_data, etc.).
   final String dataType;
 
@@ -118,17 +129,6 @@ class RetentionPolicy {
 
   /// Compliance frameworks this applies to (GDPR, CCPA, etc.).
   final List<String> complianceFrameworks;
-
-  /// Create from JSON.
-  factory RetentionPolicy.fromJson(Map<String, dynamic> json) =>
-      RetentionPolicy(
-        dataType: json['dataType'] as String,
-        retentionPeriod: json['retentionPeriod'] as int,
-        deletionMethod: json['deletionMethod'] as String,
-        autoDelete: json['autoDelete'] as bool? ?? true,
-        complianceFrameworks:
-            List<String>.from(json['complianceFrameworks'] as Iterable? ?? []),
-      );
 
   /// Check if data is expired based on this policy.
   bool isExpired(DateTime dataTimestamp) {
@@ -379,7 +379,7 @@ class ComplianceManager {
       if (policy.retentionPeriod > 2555) {
         // 7 years
         status['recommendations'].add(
-            '${policy.dataType}: Consider reducing retention period for GDPR compliance');
+            '${policy.dataType}: Consider reducing retention period for GDPR compliance',);
       }
     }
 
@@ -413,13 +413,13 @@ class ComplianceManager {
       resource: 'user_data',
       details: {
         'deletedUserId': anonymizedUserId,
-        'deletedEntries': deletedCount
+        'deletedEntries': deletedCount,
       },
       confidential: true,
     );
 
     logger.info(
-        'User data deletion completed: $deletedCount entries removed for user $anonymizedUserId');
+        'User data deletion completed: $deletedCount entries removed for user $anonymizedUserId',);
     return deletedCount;
   }
 
@@ -457,7 +457,7 @@ class ComplianceManager {
   /// Sanitize resource path for logging.
   String _sanitizeResource(String resource) {
     // Remove sensitive information from paths
-    return resource.replaceAll(RegExp(r'/users/[^/]+/'), '/users/[redacted]/');
+    return resource.replaceAll(RegExp('/users/[^/]+/'), '/users/[redacted]/');
   }
 
   /// Sanitize audit details.
@@ -485,7 +485,7 @@ class ComplianceManager {
     final username = email.substring(0, atIndex);
     final domain = email.substring(atIndex + 1);
 
-    if (username.length <= 2) return '${username}***@$domain';
+    if (username.length <= 2) return '$username***@$domain';
     return '${username.substring(0, 2)}***@$domain';
   }
 
@@ -525,7 +525,7 @@ class ComplianceManager {
         final data = json.decode(content) as Map<String, dynamic>;
         final entries = data['entries'] as List<dynamic>;
         existingEntries.addAll(
-            entries.map((e) => AuditEntry.fromJson(e as Map<String, dynamic>)));
+            entries.map((e) => AuditEntry.fromJson(e as Map<String, dynamic>),),);
       }
 
       existingEntries.add(entry);
@@ -568,7 +568,6 @@ class ComplianceManager {
           }
           return false;
         });
-        break;
 
       case 'anonymize':
         // Remove sensitive data but keep structure
@@ -578,13 +577,11 @@ class ComplianceManager {
             deletedCount++;
           }
         }
-        break;
 
       case 'archive':
         // Move to archive (not implemented yet)
         logger.debug(
-            'Archive deletion method not yet implemented for ${policy.dataType}');
-        break;
+            'Archive deletion method not yet implemented for ${policy.dataType}',);
     }
 
     return deletedCount;
